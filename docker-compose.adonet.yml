@@ -1,0 +1,35 @@
+# =============================================================================
+# docker-compose.adonet.yml — ADO.NET data-access OVERRIDE (SQL Server only).
+#
+# The four data-owning services (Auth, Users, Accounts, Transactions) can talk
+# to the database two ways:
+#     EF Core  (default)  — works with EVERY provider
+#     ADO.NET             — raw Microsoft.Data.SqlClient, SQL Server ONLY
+# The mode is chosen at startup by the DATA_ACCESS environment variable
+# ("EfCore" | "AdoNet"). This override just sets DATA_ACCESS=AdoNet on those
+# four services; everything else (ports, images, the SQL Server container) comes
+# from the base + sqlserver compose files.
+#
+# USE IT ONLY STACKED ON TOP OF THE SQLSERVER PROVIDER, e.g.:
+#   docker compose -f docker-compose.yml \
+#                  -f docker-compose.sqlserver.yml \
+#                  -f docker-compose.adonet.yml up --build
+#
+# ADO.NET against any provider other than sqlserver throws at startup by design.
+# =============================================================================
+services:
+  auth-service:
+    environment:
+      DATA_ACCESS: AdoNet
+
+  users-service:
+    environment:
+      DATA_ACCESS: AdoNet
+
+  accounts-service:
+    environment:
+      DATA_ACCESS: AdoNet
+
+  transactions-service:
+    environment:
+      DATA_ACCESS: AdoNet

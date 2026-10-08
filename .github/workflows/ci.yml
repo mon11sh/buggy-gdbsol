@@ -1,0 +1,164 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+    tags: ["v*"]
+  pull_request:
+    branches: ["**"]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ghcr.io/${{ github.repository_owner }}/gdb
+
+jobs:
+  # ---- Backend: test the complete solution (in-memory provider) ----
+  backend-test:
+    name: build and test solution
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore dependencies
+        run: dotnet restore gdb-service-dotnet.slnx
+      - name: Build solution (warnings are errors)
+        run: dotnet build gdb-service-dotnet.slnx --configuration Release --no-restore
+      - name: Run tests (in-memory provider)
+        env:
+          DATABASE_PROVIDER: inmemory
+        run: dotnet test gdb-service-dotnet.slnx --configuration Release --no-build -q
+
+  # ---- Dependency Vulnerability Audit ----
+  dependency-audit:
+    name: dependency audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Restore
+        run: dotnet restore gdb-service-dotnet.slnx
+      - name: Audit dependencies (fails on any known advisory, transitive included)
+        run: |
+          set -o pipefail
+          # The restore above already enforces the gate (NuGetAudit + WarningsAsErrors in Directory.Build.props).
+          # This step reports the full list and re-checks it, tolerating only the advisories that are
+          # explicitly suppressed - with a written justification - in Directory.Build.props.
+          suppressed=$(grep -oE 'NuGetAuditSuppress Include="[^"]+"' Directory.Build.props | sed -E 's/.*Include="([^"]+)"/\1/' || true)
+          out=$(dotnet list gdb-service-dotnet.slnx package --vulnerable --include-transitive)
+          echo "$out"
+          bad=$(echo "$out" | grep -E '^\s+>' || true)
+          for u in $suppressed; do bad=$(echo "$bad" | grep -vF "$u" || true); done
+          if [ -n "$(echo "$bad" | tr -d '[:space:]')" ]; then
+            echo "$bad"
+            echo "::error::Unsuppressed vulnerable package(s) detected — upgrade, pin a fixed version, or add a justified suppression."
+            exit 1
+          fi
+          echo "OK: no unsuppressed vulnerable packages."
+
+  # ---- OpenAPI Validation Gate ----
+  openapi-gate:
+    name: validate openapi contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Run OpenAPI Gate
+        run: dotnet run --project tools/Gdb.OpenApiGate --configuration Release
+
+  # ---- Secret scanning across the whole repo ----
+  secrets:
+    name: secret scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # ---- Executable-bit lint: shebang scripts must be executable in git ----
+  # Catches the Windows pitfall where a script is committed with mode 100644, so it
+  # fails with "Permission denied" on every fresh clone (Linux/macOS/VS Code web).
+  exec-bits:
+    name: shell scripts executable
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify shebang scripts are marked executable in git
+        run: |
+          set -uo pipefail
+          bad=0
+          # Every TRACKED file whose first two bytes are "#!" (a shebang) must have git
+          # mode 100755. We read the mode from the index, not the disk, because the repo
+          # mode is the thing that travels to every clone.
+          while IFS= read -r -d '' f; do
+            [ "$(git show ":$f" 2>/dev/null | head -c2)" = '#!' ] || continue
+            mode=$(git ls-files -s -- "$f" | awk '{print $1}')
+            if [ "$mode" != "100755" ]; then
+              echo "::error file=$f::shebang script committed with mode $mode (expected 100755). Fix: git update-index --chmod=+x \"$f\""
+              bad=1
+            fi
+          done < <(git ls-files -z)
+          if [ "$bad" -ne 0 ]; then
+            echo "One or more shebang scripts are not executable in git (see errors above)."
+            exit 1
+          fi
+          echo "OK: all shebang scripts are marked executable in git."
+
+  # ---- Container images: build EVERY service, scan it, and publish on main / tags ----
+  images:
+    name: image ${{ matrix.service }}
+    runs-on: ubuntu-latest
+    needs: [backend-test, openapi-gate, dependency-audit]
+    permissions:
+      contents: read
+      packages: write
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { service: AccountsService,              image: accounts_service }
+          - { service: TransactionsService,          image: transactions_service }
+          - { service: AuthService,                  image: auth_service }
+          - { service: UsersService,                 image: users_service }
+          - { service: AadharService,                image: aadhar_service }
+          - { service: CompanyCrvService,            image: company_crv_service }
+          - { service: NotificationService,          image: notification_service }
+          - { service: CentralPaymentGatewayService, image: central_payment_gateway_service }
+          - { service: RegistryService,              image: registry_service }
+          - { service: CentralGatewayService,        image: central_gateway_service }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build image
+        run: docker build -f ${{ matrix.service }}/Dockerfile -t ${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }} .
+      - name: Scan image (Trivy - fails on HIGH/CRITICAL with a fix available)
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+      - name: Log in to GHCR
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish image (sha + branch/tag)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+        run: |
+          ref="${GITHUB_REF_NAME//\//-}"
+          docker tag "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}" "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${ref}"
+          docker push "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}"
+          docker push "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${ref}"

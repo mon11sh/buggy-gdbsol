@@ -1,0 +1,6 @@
+@CentralGatewayService_HostAddress = http://localhost:5234
+
+GET {{CentralGatewayService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

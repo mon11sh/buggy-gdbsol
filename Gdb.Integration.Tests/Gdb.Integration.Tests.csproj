@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Boots the REAL services in-process (WebApplicationFactory, in-memory provider) and drives them
+       over HTTP: authentication, authorization, the error contract and the transfer saga's failure
+       modes. Only the network edges (Users lookup, Accounts internal API, payment gateway,
+       notifications) are faked. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MSTest" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Microsoft.VisualStudio.TestTools.UnitTesting" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Each service has its own top-level `Program`; aliases keep them apart. -->
+    <ProjectReference Include="..\AuthService\AuthService.csproj" Aliases="Auth" />
+    <ProjectReference Include="..\AccountsService\AccountsService.csproj" Aliases="Accounts" />
+    <ProjectReference Include="..\TransactionsService\TransactionsService.csproj" Aliases="Transactions" />
+  </ItemGroup>
+
+</Project>

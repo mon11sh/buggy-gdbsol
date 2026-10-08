@@ -1,0 +1,45 @@
+# Provider override: SQL Server (bundled container).
+#   docker compose -f docker-compose.yml -f docker-compose.sqlserver.yml up --build
+# All 4 data services use the EF Core SQL Server path (DatabaseUrl). Each
+# auto-creates its own gdb_*_db.
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: Y
+      MSSQL_SA_PASSWORD: Welcome1234!
+    ports: ["11433:1433"]         # host 11433 avoids clashing with local SQL Server on 1433; inspect via SSMS at localhost:11433 (sa/Welcome1234!)
+    healthcheck:
+      test: ["CMD", "/opt/mssql-tools18/bin/sqlcmd", "-S", "localhost", "-U", "sa", "-P", "Welcome1234!", "-Q", "SELECT 1", "-No"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
+
+  auth-service:
+    environment:
+      DatabaseProvider: sqlserver
+      DatabaseUrl: Server=sqlserver,1433;Database=gdb_auth_db;User Id=sa;Password=Welcome1234!;TrustServerCertificate=True
+    depends_on:
+      sqlserver: { condition: service_healthy }
+
+  users-service:
+    environment:
+      DatabaseProvider: sqlserver
+      DatabaseUrl: Server=sqlserver,1433;Database=gdb_users_db;User Id=sa;Password=Welcome1234!;TrustServerCertificate=True
+    depends_on:
+      sqlserver: { condition: service_healthy }
+
+  accounts-service:
+    environment:
+      DatabaseProvider: sqlserver
+      DatabaseUrl: Server=sqlserver,1433;Database=gdb_accounts_db;User Id=sa;Password=Welcome1234!;TrustServerCertificate=True
+    depends_on:
+      sqlserver: { condition: service_healthy }
+
+  transactions-service:
+    environment:
+      DatabaseProvider: sqlserver
+      DatabaseUrl: Server=sqlserver,1433;Database=gdb_transactions_db;User Id=sa;Password=Welcome1234!;TrustServerCertificate=True
+    depends_on:
+      sqlserver: { condition: service_healthy }

@@ -1,0 +1,39 @@
+# Provider override: Supabase (cloud PostgreSQL — no local DB container).
+#   1) copy  supabase.env.example  →  .env  and fill in your Supabase values
+#   2) docker compose -f docker-compose.yml -f docker-compose.supabase.yml up --build
+#
+# Supabase gives ONE shared `postgres` database, so all services point at it.
+# Values below are read from the .env file next to this compose file.
+services:
+  auth-service:
+    environment:
+      DatabaseProvider: supabase
+      DatabaseHost: ${SUPABASE_DB_HOST}
+      DatabasePort: ${SUPABASE_DB_PORT:-5432}
+      DatabaseUser: ${SUPABASE_DB_USER}
+      DatabasePassword: ${SUPABASE_DB_PASSWORD}
+      DatabaseName: ${SUPABASE_DB_NAME:-postgres}
+  users-service:
+    environment:
+      DatabaseProvider: supabase
+      DatabaseHost: ${SUPABASE_DB_HOST}
+      DatabasePort: ${SUPABASE_DB_PORT:-5432}
+      DatabaseUser: ${SUPABASE_DB_USER}
+      DatabasePassword: ${SUPABASE_DB_PASSWORD}
+      DatabaseName: ${SUPABASE_DB_NAME:-postgres}
+  accounts-service:
+    environment:
+      DatabaseProvider: supabase
+      DatabaseHost: ${SUPABASE_DB_HOST}
+      DatabasePort: ${SUPABASE_DB_PORT:-5432}
+      DatabaseUser: ${SUPABASE_DB_USER}
+      DatabasePassword: ${SUPABASE_DB_PASSWORD}
+      DatabaseName: ${SUPABASE_DB_NAME:-postgres}
+  transactions-service:
+    environment:
+      DatabaseProvider: supabase
+      DatabaseHost: ${SUPABASE_DB_HOST}
+      DatabasePort: ${SUPABASE_DB_PORT:-5432}
+      DatabaseUser: ${SUPABASE_DB_USER}
+      DatabasePassword: ${SUPABASE_DB_PASSWORD}
+      DatabaseName: ${SUPABASE_DB_NAME:-postgres}

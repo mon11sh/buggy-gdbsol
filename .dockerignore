@@ -1,0 +1,15 @@
+**/bin/
+**/obj/
+**/.vs/
+**/.vscode/
+**/.git/
+**/.github/
+**/*.db
+**/*.sqlite3
+**/logs/
+**/.env
+*.md
+*.html
+docs/
+Trainee_Codebase/
+**/node_modules/

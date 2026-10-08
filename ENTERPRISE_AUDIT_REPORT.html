@@ -1,0 +1,620 @@
+<title>GDB — Enterprise Architecture Audit</title>
+<style>
+  :root{
+    --paper:#F3F5FA; --surface:#FFFFFF; --surface-2:#F8FAFD; --surface-3:#EEF2F8;
+    --ink:#141A24; --ink-soft:#47536A; --ink-faint:#7A879E;
+    --line:#DFE5EF; --line-strong:#C4CDDD;
+    --accent:#1F5A98; --accent-ink:#164777; --accent-wash:#E6EEF7;
+    --crit:#CC2E3B; --crit-wash:#FBE9EA; --crit-ink:#A31F2A;
+    --high:#C9741A; --high-wash:#FaF0e2; --high-wash:#FAF0E1; --high-ink:#9A5510;
+    --med:#B8901A; --med-wash:#FAF4DE; --med-ink:#8A6B0F;
+    --good:#1F8F5F; --good-wash:#E3F4EC; --good-ink:#146945;
+    --code-bg:#0E1622; --code-ink:#D6E0F0; --code-faint:#7E8CA8;
+    --radius:13px;
+    --mono:ui-monospace,"Cascadia Code","Consolas","SFMono-Regular",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI Variable","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0C1119; --surface:#131A25; --surface-2:#171F2C; --surface-3:#1D2735;
+      --ink:#E7ECF5; --ink-soft:#A7B2C6; --ink-faint:#717E95;
+      --line:#242F40; --line-strong:#334155;
+      --accent:#5B9BD8; --accent-ink:#8FBEEA; --accent-wash:#152438;
+      --crit:#F06A72; --crit-wash:#2C1416; --crit-ink:#F58A90;
+      --high:#E39A4A; --high-wash:#2A1F10; --high-ink:#EDB16A;
+      --med:#D9BC55; --med-wash:#241F0F; --med-ink:#E4CD79;
+      --good:#4FC58C; --good-wash:#122A20; --good-ink:#6FD6A3;
+      --code-bg:#070C14; --code-ink:#D0DAEC; --code-faint:#6C7A96;
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#F3F5FA; --surface:#FFFFFF; --surface-2:#F8FAFD; --surface-3:#EEF2F8;
+    --ink:#141A24; --ink-soft:#47536A; --ink-faint:#7A879E; --line:#DFE5EF; --line-strong:#C4CDDD;
+    --accent:#1F5A98; --accent-ink:#164777; --accent-wash:#E6EEF7;
+    --crit:#CC2E3B; --crit-wash:#FBE9EA; --crit-ink:#A31F2A;
+    --high:#C9741A; --high-wash:#FAF0E1; --high-ink:#9A5510;
+    --med:#B8901A; --med-wash:#FAF4DE; --med-ink:#8A6B0F;
+    --good:#1F8F5F; --good-wash:#E3F4EC; --good-ink:#146945;
+    --code-bg:#0E1622; --code-ink:#D6E0F0; --code-faint:#7E8CA8;
+  }
+  :root[data-theme="dark"]{
+    --paper:#0C1119; --surface:#131A25; --surface-2:#171F2C; --surface-3:#1D2735;
+    --ink:#E7ECF5; --ink-soft:#A7B2C6; --ink-faint:#717E95; --line:#242F40; --line-strong:#334155;
+    --accent:#5B9BD8; --accent-ink:#8FBEEA; --accent-wash:#152438;
+    --crit:#F06A72; --crit-wash:#2C1416; --crit-ink:#F58A90;
+    --high:#E39A4A; --high-wash:#2A1F10; --high-ink:#EDB16A;
+    --med:#D9BC55; --med-wash:#241F0F; --med-ink:#E4CD79;
+    --good:#4FC58C; --good-wash:#122A20; --good-ink:#6FD6A3;
+    --code-bg:#070C14; --code-ink:#D0DAEC; --code-faint:#6C7A96;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--paper);color:var(--ink);font-family:var(--sans);line-height:1.6;font-size:16px;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1200px;margin:0 auto;padding:0 22px}
+
+  /* masthead */
+  .masthead{background:linear-gradient(160deg,var(--surface-3),var(--surface));border-bottom:1px solid var(--line)}
+  .masthead .wrap{padding:40px 22px 34px}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:var(--accent-ink);font-weight:700;display:flex;gap:10px;align-items:center}
+  .eyebrow::before{content:"";width:24px;height:2px;background:var(--accent)}
+  h1{font-size:clamp(28px,4.5vw,44px);line-height:1.06;margin:.3em 0 .2em;letter-spacing:-.02em;font-weight:800;text-wrap:balance}
+  .sub{font-size:clamp(15px,1.8vw,18px);color:var(--ink-soft);max-width:70ch;margin:0}
+  .verdict{display:flex;flex-wrap:wrap;gap:14px;margin-top:22px;align-items:stretch}
+  .verdict .big{background:var(--surface);border:1px solid var(--line-strong);border-radius:var(--radius);padding:14px 20px;display:flex;flex-direction:column;gap:2px;min-width:150px}
+  .verdict .big .n{font-family:var(--mono);font-size:30px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1}
+  .verdict .big .l{font-size:12px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.08em}
+  .sevbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .sevchip{font-family:var(--mono);font-size:12.5px;font-weight:700;padding:6px 12px;border-radius:999px;border:1px solid currentColor;display:inline-flex;gap:7px;align-items:center}
+  .sevchip b{font-variant-numeric:tabular-nums}
+  .c-crit{color:var(--crit)} .c-high{color:var(--high-ink)} .c-med{color:var(--med-ink)} .c-good{color:var(--good)}
+
+  .shell{display:grid;grid-template-columns:230px minmax(0,1fr);gap:40px;padding:34px 0 90px}
+  @media(max-width:940px){.shell{grid-template-columns:1fr;gap:6px}}
+  nav.toc{position:sticky;top:16px;align-self:start;font-size:14px}
+  @media(max-width:940px){nav.toc{position:static;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface);padding:12px 14px;margin-bottom:12px}}
+  nav.toc p{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-faint);margin:0 0 10px;font-weight:700}
+  nav.toc a{display:block;text-decoration:none;color:var(--ink-soft);padding:5px 9px;border-radius:7px;border-left:2px solid transparent}
+  nav.toc a:hover{background:var(--accent-wash);color:var(--ink)}
+  main{min-width:0}
+
+  section{scroll-margin-top:16px;margin-bottom:46px}
+  h2{font-size:clamp(21px,3vw,27px);letter-spacing:-.01em;margin:0 0 4px;font-weight:800;text-wrap:balance}
+  h2 .hn{font-family:var(--mono);color:var(--accent-ink);font-size:.62em;font-weight:700;margin-right:10px}
+  h3{font-size:17px;margin:24px 0 8px;font-weight:750}
+  .lead{color:var(--ink-soft);margin:2px 0 14px}
+  p{margin:10px 0}
+  a{color:var(--accent-ink)}
+  strong{font-weight:700}
+  code{font-family:var(--mono);font-size:.86em;background:var(--surface-3);color:var(--accent-ink);padding:1px 6px;border-radius:5px;border:1px solid var(--line)}
+  .file{font-family:var(--mono);font-size:.82em;color:var(--ink-faint)}
+
+  /* scorecard */
+  .scores{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:10px 26px;background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px 24px}
+  .score{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;padding:7px 0;border-bottom:1px solid var(--line)}
+  .score:last-child,.score:nth-last-child(2){border-bottom:none}
+  .score .name{font-size:14px;font-weight:600}
+  .score .val{font-family:var(--mono);font-weight:800;font-size:15px;font-variant-numeric:tabular-nums}
+  .track{grid-column:1/3;height:7px;border-radius:99px;background:var(--surface-3);overflow:hidden}
+  .fill{height:100%;border-radius:99px}
+  .b-red{background:var(--crit)} .b-amber{background:var(--high)} .b-green{background:var(--good)}
+  .t-red{color:var(--crit)} .t-amber{color:var(--high-ink)} .t-green{color:var(--good)}
+
+  /* issue cards */
+  .issue{background:var(--surface);border:1px solid var(--line);border-left-width:4px;border-radius:var(--radius);padding:18px 20px;margin:14px 0}
+  .issue.crit{border-left-color:var(--crit)} .issue.high{border-left-color:var(--high)}
+  .issue .ihead{display:flex;flex-wrap:wrap;gap:10px;align-items:baseline;margin-bottom:6px}
+  .issue .id{font-family:var(--mono);font-weight:800;font-size:13px;color:var(--accent-ink)}
+  .issue h3{margin:0;font-size:17px}
+  .tag{font-family:var(--mono);font-size:10.5px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;padding:2px 8px;border-radius:999px;border:1px solid currentColor}
+  .tag.crit{color:var(--crit);background:var(--crit-wash)} .tag.high{color:var(--high-ink);background:var(--high-wash)}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:2px 22px;margin-top:8px}
+  @media(max-width:680px){.grid2{grid-template-columns:1fr}}
+  .kv{display:grid;grid-template-columns:120px 1fr;gap:3px 12px;padding:5px 0;border-top:1px solid var(--line);font-size:14px}
+  .kv dt{font-weight:700;color:var(--ink-soft);font-size:12.5px;text-transform:uppercase;letter-spacing:.03em}
+  .kv dd{margin:0}
+  .rec{background:var(--accent-wash);border-radius:9px;padding:10px 13px;margin-top:10px;font-size:14px}
+  .rec b{color:var(--accent-ink)}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+  .meta span{font-family:var(--mono);font-size:11.5px;padding:3px 9px;border-radius:7px;background:var(--surface-3);color:var(--ink-soft)}
+  .meta span b{color:var(--ink)}
+
+  .tbl{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);margin:14px 0}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;min-width:640px}
+  th,td{text-align:left;padding:9px 13px;border-bottom:1px solid var(--line);vertical-align:top}
+  thead th{background:var(--surface-2);font-size:11.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  td.mono{font-family:var(--mono);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .pri{font-family:var(--mono);font-size:11px;font-weight:700;padding:1px 7px;border-radius:5px}
+  .pri.c{color:var(--crit);background:var(--crit-wash)} .pri.h{color:var(--high-ink);background:var(--high-wash)}
+  .pri.m{color:var(--med-ink);background:var(--med-wash)} .pri.l{color:var(--ink-soft);background:var(--surface-3)}
+
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px 18px;margin:12px 0}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:720px){.split{grid-template-columns:1fr}}
+  ul.tight{margin:8px 0;padding-left:20px}
+  ul.tight li{margin:5px 0}
+  .good-li::marker{color:var(--good)} .bad-li::marker{color:var(--crit)}
+  .pre{background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:14px 16px;overflow-x:auto;font-family:var(--mono);font-size:12.5px;line-height:1.65;margin:12px 0}
+  .pre .c{color:var(--code-faint)} .pre .g{color:#5FC58C} .pre .a{color:#5B9BD8}
+
+  .phase{border-left:2px solid var(--line-strong);padding:2px 0 2px 20px;margin-left:6px;position:relative}
+  .phase::before{content:"";position:absolute;left:-7px;top:6px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid var(--surface)}
+  .phase h3{margin:0 0 4px}
+  .phase .when{font-family:var(--mono);font-size:11.5px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:.05em}
+
+  footer{border-top:1px solid var(--line);padding:22px 0 60px;color:var(--ink-faint);font-size:13px}
+  footer .wrap{display:flex;flex-wrap:wrap;gap:12px;justify-content:space-between}
+  @media(prefers-reduced-motion:no-preference){nav.toc a{transition:background .15s,color .15s}.fill{transition:width .5s ease}}
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="eyebrow">Architecture Review Board · Confidential</div>
+    <h1>GDB Banking Platform — Enterprise Architecture Audit</h1>
+    <p class="sub">A full read-only review of the Global Digital Bank codebase: 8 ASP.NET Core Web API microservices + a React
+      frontend, evaluated against enterprise standards for production at scale. Findings are evidence-based and cite
+      source files. <strong>No code was modified.</strong></p>
+    <div class="verdict">
+      <div class="big"><span class="n t-amber">5.4</span><span class="l">Overall / 10</span></div>
+      <div class="big"><span class="n t-red">4.0</span><span class="l">Security</span></div>
+      <div class="big"><span class="n t-amber">6.0</span><span class="l">Architecture</span></div>
+      <div style="display:flex;flex-direction:column;gap:8px;justify-content:center">
+        <div class="sevbar">
+          <span class="sevchip c-crit">CRITICAL <b>2</b></span>
+          <span class="sevchip c-high">HIGH <b>6</b></span>
+          <span class="sevchip c-med">MEDIUM <b>9</b></span>
+          <span class="sevchip c-good">QUICK WINS <b>7</b></span>
+        </div>
+        <div style="font-size:13px;color:var(--ink-soft);max-width:52ch">Verdict: <strong>strong engineering fundamentals, not yet production-hardened.</strong> Excellent layering, provider pattern, idempotency and Docker; blocked from production by secret management, observability, and migration gaps.</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="shell">
+    <nav class="toc">
+      <p>Report</p>
+      <a href="#exec">Executive summary</a>
+      <a href="#scorecard">Scorecard</a>
+      <a href="#critical">Critical &amp; High issues</a>
+      <a href="#medium">Medium issues</a>
+      <a href="#arch">Architecture</a>
+      <a href="#micro">Microservices</a>
+      <a href="#api">API</a>
+      <a href="#db">Database</a>
+      <a href="#sec">Security</a>
+      <a href="#devops">DevOps</a>
+      <a href="#test">Testing</a>
+      <a href="#docs">Docs &amp; Git</a>
+      <a href="#quickwins">Quick wins</a>
+      <a href="#roadmap">Roadmap</a>
+      <a href="#target">Target architecture</a>
+    </nav>
+
+    <main>
+      <!-- REMEDIATION BANNER -->
+      <div class="card" style="border-left:4px solid var(--good);background:var(--good-wash)">
+        <strong>⚑ Remediation applied (post-audit).</strong> This report is the
+        <em>original</em> point-in-time assessment — the scores and issues below are
+        <strong>pre-remediation</strong>. Since then, <strong>all Critical + High findings
+        are resolved or mitigated and 7 of 9 Mediums are done</strong> across 15 verified
+        commits (C-1 RS256, H-2/H-3 secrets+deps, H-4 Aadhaar encryption, H-5 EF Core Migrations,
+        H-6 CI+observability, M-1/M-3/M-4/M-6/M-7/M-8/M-9). See
+        <code>ENTERPRISE_REMEDIATION_PLAN.md</code> for the finding-by-finding status.
+        Remaining: M-2 data-access unification and Phase-4 infrastructure (gateway, saga,
+        K8s, mTLS, OTel collector) — validated against a running stack.
+      </div>
+
+      <!-- EXEC -->
+      <section id="exec">
+        <h2>Executive summary</h2>
+        <p class="lead">What the board should know in one minute.</p>
+        <p>GDB is a <strong>well-structured, genuinely educational microservices platform</strong>. The four
+        stateful services (accounts, transactions, auth, users) follow a clean layered architecture
+        (<code>api → services → repositories → database/providers</code>), a strong provider/factory abstraction that
+        runs the same business code against five databases, correct password/PIN hashing (bcrypt), and a
+        <strong>fail-closed idempotency</strong> system for money movement. Docker support is excellent.</p>
+        <p>However, judged against the "production for millions of users" bar, it is <strong>not yet
+        enterprise-ready</strong>. Two <span class="c-crit"><strong>critical</strong></span> security defaults
+        (hardcoded JWT signing secret and inter-service key) would allow token forgery if shipped as-is. Operationally
+        it is <strong>blind</strong>: no CI/CD, no metrics/tracing/correlation IDs, no schema-migration tooling (schema
+        is (re)created at startup; two migration files are empty). Structurally there is meaningful debt: two divergent
+        data-access styles, a <code>sys.path</code> source coupling to <code>auth_service</code>, and heavy
+        copy-paste of infrastructure across services with no shared library.</p>
+        <div class="card"><strong>Board recommendation:</strong> approve a phased hardening program (see Roadmap).
+        <strong>Phase 0 (this week)</strong> must close the two critical secret-management issues and CORS wildcard
+        before any shared/staging deployment. None of the findings require a rewrite — the foundation is sound and the
+        fixes are additive.</p>
+      </section>
+
+      <!-- SCORECARD -->
+      <section id="scorecard">
+        <h2>Scorecard</h2>
+        <p class="lead">Eleven dimensions, 1–10. Bands: <span class="t-red">&lt;5 critical gap</span> ·
+        <span class="t-amber">5–6.5 needs work</span> · <span class="t-green">&gt;6.5 solid</span>.</p>
+        <div class="scores">
+          <div class="score"><span class="name">Architecture</span><span class="val t-amber">6.0</span><div class="track"><div class="fill b-amber" style="width:60%"></div></div></div>
+          <div class="score"><span class="name">Security</span><span class="val t-red">4.0</span><div class="track"><div class="fill b-red" style="width:40%"></div></div></div>
+          <div class="score"><span class="name">Maintainability</span><span class="val t-amber">5.5</span><div class="track"><div class="fill b-amber" style="width:55%"></div></div></div>
+          <div class="score"><span class="name">Scalability</span><span class="val t-amber">5.0</span><div class="track"><div class="fill b-amber" style="width:50%"></div></div></div>
+          <div class="score"><span class="name">Performance</span><span class="val t-amber">6.0</span><div class="track"><div class="fill b-amber" style="width:60%"></div></div></div>
+          <div class="score"><span class="name">Documentation</span><span class="val t-amber">5.0</span><div class="track"><div class="fill b-amber" style="width:50%"></div></div></div>
+          <div class="score"><span class="name">Code quality</span><span class="val t-amber">6.0</span><div class="track"><div class="fill b-amber" style="width:60%"></div></div></div>
+          <div class="score"><span class="name">DevOps</span><span class="val t-amber">5.0</span><div class="track"><div class="fill b-amber" style="width:50%"></div></div></div>
+          <div class="score"><span class="name">Microservices</span><span class="val t-red">4.5</span><div class="track"><div class="fill b-red" style="width:45%"></div></div></div>
+          <div class="score"><span class="name">Testing</span><span class="val t-amber">6.0</span><div class="track"><div class="fill b-amber" style="width:60%"></div></div></div>
+          <div class="score"><span class="name">Technical debt (lower=worse)</span><span class="val t-amber">5.5</span><div class="track"><div class="fill b-amber" style="width:55%"></div></div></div>
+        </div>
+      </section>
+
+      <!-- CRITICAL & HIGH -->
+      <section id="critical">
+        <h2>Critical &amp; High-priority issues</h2>
+        <p class="lead">Each carries the board's required analysis. "Effort" is engineer-days for one senior engineer.</p>
+
+        <!-- C1 -->
+        <div class="issue crit">
+          <div class="ihead"><span class="id">C-1</span><span class="tag crit">Critical · Security</span><h3>Hardcoded default JWT signing secret, shared across all services (HS256)</h3></div>
+          <p>The same symmetric secret both signs and verifies every token, and ships as a code default.</p>
+          <div class="grid2">
+            <dl class="kv"><dt>Current state</dt><dd><code>JWT_SECRET_KEY = "your-super-secret-jwt-key-change-in-production"</code> is the default in <span class="file">auth/accounts/transactions/users config/settings.py</span>; <code>.env.production</code> ships a placeholder (<code>your-production-jwt-secret-key</code>) rather than injecting at deploy.</dd></dl>
+            <dl class="kv"><dt>Problem</dt><dd>HS256 uses one shared secret to sign (auth) and verify (all). If the default is ever active, anyone can forge a valid <code>role:"ADMIN"</code> token.</dd></dl>
+            <dl class="kv"><dt>Business impact</dt><dd>Full account takeover / unauthorized fund transfer; regulatory + reputational catastrophe for a bank.</dd></dl>
+            <dl class="kv"><dt>Technical impact</dt><dd>Every authenticated endpoint across 8 services is trust-compromised; no key rotation path.</dd></dl>
+            <dl class="kv"><dt>Scalability</dt><dd>Shared symmetric secret must be distributed to every replica/service — rotation becomes a fleet-wide event.</dd></dl>
+            <dl class="kv"><dt>Maintainability</dt><dd>Secret duplicated in 4 settings files → drift risk.</dd></dl>
+          </div>
+          <div class="rec"><b>Solutions:</b> (1) Inject <code>JWT_SECRET_KEY</code> from a secrets manager (Vault / AWS Secrets Manager / Doppler) at deploy; fail fast if unset in non-dev. (2) <b>Best →</b> move to <b>asymmetric RS256/ES256</b>: <code>auth_service</code> holds the private key and signs; other services verify with the <b>public</b> key (via JWKS) — no shared secret, clean rotation. (3) Add a startup guard that refuses to boot in <code>ENVIRONMENT=production</code> with a default/empty secret.</div>
+          <div class="meta"><span>Effort <b>3–5d</b></span><span>Risk <b>Low</b></span><span>Backward-compat <b>RS256 changes token issuance; roll with dual-verify window</b></span><span>Priority <b>CRITICAL</b></span></div>
+        </div>
+
+        <!-- C2 -->
+        <div class="issue crit">
+          <div class="ihead"><span class="id">C-2</span><span class="tag crit">Critical · Security</span><h3>Hardcoded default inter-service API key (shared static secret)</h3></div>
+          <div class="grid2">
+            <dl class="kv"><dt>Current state</dt><dd>All 8 services default <code>INTERNAL_API_KEY = "dev-internal-api-key-change-in-prod"</code>; verified by plain, non-constant-time string equality on the <code>X-Internal-API-Key</code> header (<span class="file">*/dependencies/internal_auth.py</span>). Docker compose ships the key inline.</dd></dl>
+            <dl class="kv"><dt>Problem</dt><dd>Internal endpoints (debit/credit, PIN verify) are gated only by a guessable shared bearer secret — not mTLS. A leaked/default key lets any actor move money between accounts.</dd></dl>
+            <dl class="kv"><dt>Business impact</dt><dd>Unauthorized internal money movement; bypass of the public auth layer entirely.</dd></dl>
+            <dl class="kv"><dt>Technical impact</dt><dd>Timing side-channel on comparison; single secret guards the whole east-west surface.</dd></dl>
+            <dl class="kv"><dt>Scalability</dt><dd>One shared secret across the mesh; rotation is fleet-wide and coordinated.</dd></dl>
+            <dl class="kv"><dt>Security</dt><dd>No caller identity, no per-service scoping, no revocation.</dd></dl>
+          </div>
+          <div class="rec"><b>Solutions:</b> (1) Inject the key from secrets manager + use <code>hmac.compare_digest</code> for constant-time compare (quick). (2) <b>Best →</b> <b>mTLS between services</b> (or a service mesh — Istio/Linkerd) so identity is cryptographic, per-service, and revocable. (3) Interim: short-lived signed service tokens (SPIFFE/JWT-SVID) instead of a static key.</div>
+          <div class="meta"><span>Effort <b>2d</b> quick / <b>8–13d</b> mesh</span><span>Risk <b>Low</b></span><span>Backward-compat <b>Header stays; only the value/verify changes</b></span><span>Priority <b>CRITICAL</b></span></div>
+        </div>
+
+        <!-- H1 -->
+        <div class="issue high">
+          <div class="ihead"><span class="id">H-1</span><span class="tag high">High · Security</span><h3>CORS wildcard <code>*</code> combined with <code>allow_credentials=True</code></h3></div>
+          <div class="grid2">
+            <dl class="kv"><dt>Current state</dt><dd>accounts &amp; notification list explicit origins <em>plus</em> <code>"*"</code>; aadhar/company/payment are <code>["*"]</code>; all applied with <code>allow_credentials=True</code>. Every <code>.env.production</code> sets <code>CORS_ALLOWED_ORIGINS=*</code>.</dd></dl>
+            <dl class="kv"><dt>Problem</dt><dd><code>*</code> + credentials is spec-forbidden and enables cross-site credentialed requests (CSRF-style data exfiltration).</dd></dl>
+            <dl class="kv"><dt>Business impact</dt><dd>A malicious site could ride a logged-in user's session against the API.</dd></dl>
+            <dl class="kv"><dt>Technical impact</dt><dd>Browsers may silently drop credentialed <code>*</code> responses → inconsistent behaviour too.</dd></dl>
+            <dl class="kv"><dt>Maintainability</dt><dd>Origin policy scattered across 8 settings files.</dd></dl>
+            <dl class="kv"><dt>Performance</dt><dd>Negligible.</dd></dl>
+          </div>
+          <div class="rec"><b>Best →</b> centralize an explicit allow-list (env-driven) shared by all services; never combine <code>*</code> with credentials. Put CORS at an API gateway (see Microservices) so it's defined once.</div>
+          <div class="meta"><span>Effort <b>1d</b></span><span>Risk <b>Low</b></span><span>Backward-compat <b>Must enumerate real frontend origins</b></span><span>Priority <b>HIGH</b></span></div>
+        </div>
+
+        <!-- H2 -->
+        <div class="issue high">
+          <div class="ihead"><span class="id">H-2</span><span class="tag high">High · Security / Config</span><h3>Production env files are committed (<code>!.env.production</code> un-ignore)</h3></div>
+          <div class="grid2">
+            <dl class="kv"><dt>Current state</dt><dd><code>.gitignore</code> line 533 <code>!.env.production</code> deliberately tracks <code>*/.env.production</code> (placeholders today: <code>JWT_SECRET_KEY=your-production-...</code>, <code>PIN_ENCRYPTION_KEY=...</code>, <code>CORS=*</code>). A local <code>auth_service/.env</code> also holds a real DB password on disk.</dd></dl>
+            <dl class="kv"><dt>Problem</dt><dd>Normalizes committing prod config; one careless edit commits a real secret to a shared GitHub org.</dd></dl>
+            <dl class="kv"><dt>Business impact</dt><dd>Credential leak → breach; secrets in git history are effectively permanent.</dd></dl>
+            <dl class="kv"><dt>Technical impact</dt><dd>No separation between config template and secret material.</dd></dl>
+            <dl class="kv"><dt>Maintainability</dt><dd>Encourages the wrong deploy pattern.</dd></dl>
+            <dl class="kv"><dt>Scalability</dt><dd>Doesn't scale to multi-env (staging/prod/regions).</dd></dl>
+          </div>
+          <div class="rec"><b>Best →</b> remove <code>.env.production</code> from git; keep only <code>.env.example</code> templates. Inject real config via the platform (K8s Secrets / Vault / CI secrets). Add <code>gitleaks</code>/<code>detect-secrets</code> as a pre-commit + CI gate.</div>
+          <div class="meta"><span>Effort <b>1–2d</b></span><span>Risk <b>Low</b></span><span>Backward-compat <b>Deploy must supply env another way</b></span><span>Priority <b>HIGH</b></span></div>
+        </div>
+
+        <!-- H3 -->
+        <div class="issue high">
+          <div class="ihead"><span class="id">H-3</span><span class="tag high">High · Security</span><h3>Known-vulnerable pinned dependencies</h3></div>
+          <div class="grid2">
+            <dl class="kv"><dt>Current state</dt><dd><code>python-jose[cryptography]==3.3.0</code> (used by token validation), <code>cryptography==41.0.7</code>, <code>ASP.NET Core Web API==0.104.1</code>, <code>Entity Framework Core==2.0.23</code> pinned across services.</dd></dl>
+            <dl class="kv"><dt>Problem</dt><dd><code>python-jose 3.3.0</code> has algorithm-confusion (CVE-2024-33663) and DoS (CVE-2024-33664) CVEs; <code>cryptography 41.x</code> has later security fixes.</dd></dl>
+            <dl class="kv"><dt>Business impact</dt><dd>Exploitable auth/crypto path in a financial system.</dd></dl>
+            <dl class="kv"><dt>Technical impact</dt><dd>No dependency-scanning gate to catch this or future CVEs.</dd></dl>
+            <dl class="kv"><dt>Maintainability</dt><dd>Pins drift silently without automation.</dd></dl>
+            <dl class="kv"><dt>Performance</dt><dd>None.</dd></dl>
+          </div>
+          <div class="rec"><b>Best →</b> upgrade jose/cryptography/ASP.NET Core Web API/Entity Framework Core to current patched releases; add <b>Dependabot/Renovate</b> + <code>pip-audit</code>/Trivy in CI to block vulnerable deps. Consider replacing <code>python-jose</code> with <code>pyjwt</code>.</div>
+          <div class="meta"><span>Effort <b>2–3d</b> (+ regression)</span><span>Risk <b>Medium (behaviour changes)</b></span><span>Backward-compat <b>Test token + ORM paths after bump</b></span><span>Priority <b>HIGH</b></span></div>
+        </div>
+
+        <!-- H4 -->
+        <div class="issue high">
+          <div class="ihead"><span class="id">H-4</span><span class="tag high">High · Security / Privacy</span><h3>Aadhaar (national ID) stored in plaintext and returned unmasked</h3></div>
+          <div class="grid2">
+            <dl class="kv"><dt>Current state</dt><dd>Stored plaintext (<span class="file">accounts/database/orm_models.py</span> <code>aadhar_number String(12)</code>) and returned unmasked in account-detail responses (<code>result["aadhar_number"] = savings.aadhar_number</code>). It <em>is</em> masked in logs (good).</dd></dl>
+            <dl class="kv"><dt>Problem</dt><dd>Sensitive government PII at rest without encryption and exposed over the API in full.</dd></dl>
+            <dl class="kv"><dt>Business impact</dt><dd>Data-protection / regulatory violation (India Aadhaar Act, DPDP Act); breach liability.</dd></dl>
+            <dl class="kv"><dt>Technical impact</dt><dd>PII sprawl; hard to satisfy "right to erasure" / audit.</dd></dl>
+            <dl class="kv"><dt>Maintainability</dt><dd>Masking logic is inconsistent (route-level in one place, absent in the model serializer).</dd></dl>
+            <dl class="kv"><dt>Scalability</dt><dd>PII exposure grows with data volume.</dd></dl>
+          </div>
+          <div class="rec"><b>Best →</b> encrypt Aadhaar at rest (app-level envelope encryption or DB column encryption), store a hash for lookup, and mask in <em>all</em> serializers (<code>******** + [-4:]</code>) — centralized, not per-route. Add field-level access control + audit for any unmasked read.</div>
+          <div class="meta"><span>Effort <b>3–5d</b></span><span>Risk <b>Medium (data migration)</b></span><span>Backward-compat <b>Encrypt existing rows via migration</b></span><span>Priority <b>HIGH</b></span></div>
+        </div>
+
+        <!-- H5 -->
+        <div class="issue high">
+          <div class="ihead"><span class="id">H-5</span><span class="tag high">High · Data / Ops</span><h3>No schema-migration tooling — schema created at startup, migration files empty</h3></div>
+          <div class="grid2">
+            <dl class="kv"><dt>Current state</dt><dd>No EF Core Migrations anywhere. Schema is built by <code>Base.metadata.create_all</code> at boot (+ raw <code>*_schema.sql</code>). <code>users_service/migrations/001_add_role_column.sql</code> and root <code>database_setup.sql</code> are <strong>0 bytes</strong>.</dd></dl>
+            <dl class="kv"><dt>Problem</dt><dd><code>create_all</code> never alters existing tables — schema changes to a live DB are silent no-ops; no versioned, reversible migration path.</dd></dl>
+            <dl class="kv"><dt>Business impact</dt><dd>Risk of data loss / drift / failed releases; no safe rollback of a schema change in production.</dd></dl>
+            <dl class="kv"><dt>Technical impact</dt><dd>Environments diverge; can't reproduce a schema at a point in time.</dd></dl>
+            <dl class="kv"><dt>Scalability</dt><dd>Blocks zero-downtime deploys and blue/green.</dd></dl>
+            <dl class="kv"><dt>Maintainability</dt><dd>Empty migration files are actively misleading.</dd></dl>
+          </div>
+          <div class="rec"><b>Best →</b> adopt <b>EF Core Migrations</b> per service (autogenerate from the ORM models), run migrations as a deploy step (not at app startup), and delete the empty/placeholder SQL. Keep <code>create_all</code> only for the in-memory/dev path.</div>
+          <div class="meta"><span>Effort <b>3–5d</b></span><span>Risk <b>Low</b></span><span>Backward-compat <b>Baseline-stamp existing schemas</b></span><span>Priority <b>HIGH</b></span></div>
+        </div>
+
+        <!-- H6 -->
+        <div class="issue high">
+          <div class="ihead"><span class="id">H-6</span><span class="tag high">High · DevOps / SRE</span><h3>No CI/CD and no observability — the platform is operationally blind</h3></div>
+          <div class="grid2">
+            <dl class="kv"><dt>Current state</dt><dd>No <code>.github/workflows</code>, GitLab CI, or Jenkinsfile. No Prometheus/Grafana/OpenTelemetry/Sentry/ELK. No correlation/request IDs. Only <code>accounts_service</code> has a real logging config; the other 7 use bare <code>logging</code>. <code>/health</code> exists but is wired to nothing.</dd></dl>
+            <dl class="kv"><dt>Problem</dt><dd>No automated test/build/deploy gate; in production there is no way to see latency, errors, or trace a transfer across services.</dd></dl>
+            <dl class="kv"><dt>Business impact</dt><dd>Slow, risky releases; incidents detected by customers, not dashboards; long MTTR.</dd></dl>
+            <dl class="kv"><dt>Technical impact</dt><dd>No golden signals, no distributed trace of the debit→credit→gateway→notify flow.</dd></dl>
+            <dl class="kv"><dt>Scalability</dt><dd>Can't capacity-plan or find bottlenecks under load.</dd></dl>
+            <dl class="kv"><dt>Maintainability</dt><dd>Inconsistent logging makes debugging service-specific.</dd></dl>
+          </div>
+          <div class="rec"><b>Best →</b> (1) CI: GitHub Actions running lint + the ~629 tests + <code>pip-audit</code> + image build per PR. (2) Observability: OpenTelemetry SDK → traces/metrics; a shared structured-JSON logger with a <code>X-Correlation-ID</code> middleware propagated across integration calls; <code>/health</code>+<code>/ready</code>+<code>/live</code> wired to the orchestrator; Prometheus + Grafana dashboards.</div>
+          <div class="meta"><span>Effort <b>8–15d</b> (phased)</span><span>Risk <b>Low</b></span><span>Backward-compat <b>Additive</b></span><span>Priority <b>HIGH</b></span></div>
+        </div>
+      </section>
+
+      <!-- MEDIUM -->
+      <section id="medium">
+        <h2>Medium-priority issues</h2>
+        <p class="lead">Real debt; schedule after the criticals. (Condensed — full analysis available on request.)</p>
+        <div class="tbl"><table>
+          <thead><tr><th>ID</th><th>Issue</th><th>Impact</th><th>Recommended fix</th><th>Effort</th><th>Pri</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">M-1</td><td><strong>Money downcast to <code>float()</code></strong> at persistence/response boundaries (<span class="file">transaction_repository.py:107</span>, services, <code>balance: float(...)</code>)</td><td>IEEE-754 rounding errors in a banking ledger</td><td>Keep <code>Decimal</code>/NUMERIC end-to-end; serialize as string</td><td class="mono">3–5d</td><td><span class="pri m">MED</span></td></tr>
+            <tr><td class="mono">M-2</td><td><strong>Two data-access styles</strong>: transactions uses raw asyncpg <code>@staticmethod</code> repos on a <em>global</em> <code>database</code> singleton (accesses private <code>_pool</code>); others use injected Entity Framework Core sessions</td><td>Inconsistency, DIP violation, hard to test/mock</td><td>Unify on Entity Framework Core async (retire the asyncpg path) or wrap both behind the repo interface with injected connections</td><td class="mono">5–8d</td><td><span class="pri m">MED</span></td></tr>
+            <tr><td class="mono">M-3</td><td><strong>Infra duplication</strong>: <code>internal_auth.py</code> copied 6×, provider <code>base.py</code>/<code>factory.py</code> 4×, no shared package</td><td>Change-amplification, drift</td><td>Extract a <code>gdb_common</code> installable package (auth, providers, logging, errors)</td><td class="mono">5–8d</td><td><span class="pri m">MED</span></td></tr>
+            <tr><td class="mono">M-4</td><td><strong><code>sys.path</code> coupling</strong>: services import <code>auth_service</code> source directly by mutating <code>sys.path</code> for JWT validation</td><td>Fragile filesystem coupling across service boundaries</td><td>Move JWT verify into the shared package (public-key/JWKS), drop the path hack</td><td class="mono">2–3d</td><td><span class="pri m">MED</span></td></tr>
+            <tr><td class="mono">M-5</td><td><strong>Per-process</strong> rate-limiting &amp; payment-gateway idempotency cache (in-memory dicts)</td><td>Bypassable with multiple workers/replicas</td><td>Move throttle + idempotency to Redis (shared, TTL'd)</td><td class="mono">3–5d</td><td><span class="pri m">MED</span></td></tr>
+            <tr><td class="mono">M-6</td><td><strong>No security headers</strong> (HSTS, CSP, X-Frame-Options, X-Content-Type-Options)</td><td>Clickjacking / MIME / transport downgrade exposure</td><td>Add a secure-headers middleware (shared) or set at the gateway</td><td class="mono">1d</td><td><span class="pri m">MED</span></td></tr>
+            <tr><td class="mono">M-7</td><td><strong><code>DEBUG=True</code> default</strong> + <code>ENVIRONMENT=development</code> default in every service</td><td>Verbose errors / insecure defaults if env unset</td><td>Default to secure (<code>DEBUG=False</code>); require explicit opt-in</td><td class="mono">0.5d</td><td><span class="pri m">MED</span></td></tr>
+            <tr><td class="mono">M-8</td><td><strong>API inconsistencies</strong>: 3 error-envelope shapes (<code>{error_code,message}</code> vs <code>{error,message}</code> vs raw string), internal prefix <code>/api/v1/internal</code> vs <code>/internal/v1</code>, docs at <code>/api/v1/docs</code> vs <code>/docs</code></td><td>Client complexity, inconsistent contracts</td><td>Standard error schema + shared exception handler; one versioning/prefix convention</td><td class="mono">2–3d</td><td><span class="pri m">MED</span></td></tr>
+            <tr><td class="mono">M-9</td><td><strong>Accounts list unpaginated</strong> (filter-only) while transactions paginate; single per-op DB sessions (no single transaction across multi-step money moves — documented TOCTOU window)</td><td>Unbounded payloads at scale; consistency window</td><td>Add <code>skip/limit</code> to all lists; wrap multi-step ops in one unit-of-work where atomicity matters</td><td class="mono">3–5d</td><td><span class="pri m">MED</span></td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- ARCHITECTURE -->
+      <section id="arch">
+        <h2><span class="hn">01</span>Architecture &amp; separation of concerns</h2>
+        <p class="lead">Score 6.0 — a clean layered monolith-per-service; missing the enterprise cross-cutting tissue.</p>
+        <div class="split">
+          <div class="card"><strong>Strengths</strong>
+            <ul class="tight"><li class="good-li">Textbook layering in the 4 stateful services: <code>api → services → repositories → database/providers</code>; routes thin, services hold rules, repos own all SQL (no SQL found in any service).</li>
+            <li class="good-li">Strong <strong>provider/factory + repository-interface (ABC)</strong> abstraction — same code, five databases (OCP/LSP/DIP in practice).</li>
+            <li class="good-li">Database-per-service (local); inter-service calls isolated in <code>integration/</code> HTTP clients.</li>
+            <li class="good-li">Custom exception hierarchy; DTO validation at the edge (C# DTOs).</li></ul>
+          </div>
+          <div class="card"><strong>Weaknesses / smells</strong>
+            <ul class="tight"><li class="bad-li">Inconsistent structure — two tiers (4 full vs 4 thin mock services); <code>DB_*</code> vs <code>DATABASE_*</code> env naming; asyncpg-vs-Entity Framework Core divergence.</li>
+            <li class="bad-li">No shared library → infra copy-pasted (M-3); <code>sys.path</code> source coupling (M-4).</li>
+            <li class="bad-li">PIN-lockout orchestration leaks into the route layer instead of the service.</li>
+            <li class="bad-li">Not Clean/Hexagonal/Onion/DDD in the strict sense — it's classic layered; no ports/adapters or domain model isolation, no bounded-context contracts beyond HTTP DTOs.</li></ul>
+          </div>
+        </div>
+        <p><strong>Clean/Hexagonal/Onion/DDD verdict:</strong> the dependency direction is mostly correct (business logic doesn't import web/DB frameworks — except the asyncpg global), which is Onion-ish. To reach Hexagonal, formalize <em>ports</em> (the repo/integration interfaces already are proto-ports) and <em>adapters</em>, and lift domain entities out of C# DTOs/ORM types.</p>
+      </section>
+
+      <!-- MICRO -->
+      <section id="micro">
+        <h2><span class="hn">02</span>Microservices maturity</h2>
+        <p class="lead">Score 4.5 — good service decomposition, but almost none of the production cross-cutting patterns.</p>
+        <div class="tbl"><table>
+          <thead><tr><th>Pattern</th><th>Status</th><th>Evidence / note</th></tr></thead>
+          <tbody>
+            <tr><td>Database-per-service</td><td class="c-good">✔ (local)</td><td>Own DB per service; Supabase collapses to one shared DB (acceptable for training)</td></tr>
+            <tr><td>Idempotency (money)</td><td class="c-good">✔ strong</td><td>Insert-first reserve/complete/release, fails closed; documented TOCTOU window</td></tr>
+            <tr><td>Internal/public API split</td><td class="c-good">✔</td><td>Gated internal routers (shared-key — see C-2)</td></tr>
+            <tr><td>Health checks</td><td class="c-med">◐ partial</td><td><code>/health</code> on all 8 (inconsistent path); <code>/ready</code> only 2; <code>/live</code> none; wired to nothing</td></tr>
+            <tr><td>Timeouts</td><td class="c-med">◐</td><td>httpx timeouts set (some hardcoded); no shared policy</td></tr>
+            <tr><td>Retries / circuit breakers / bulkheads</td><td class="c-crit">✘ missing</td><td>One-shot HTTP; failure just raises <code>ServiceUnavailable</code></td></tr>
+            <tr><td>API gateway</td><td class="c-crit">✘</td><td>Clients hit services directly; CORS/auth/rate-limit duplicated per service</td></tr>
+            <tr><td>Service discovery</td><td class="c-crit">✘</td><td>Hardcoded URLs via settings</td></tr>
+            <tr><td>Tracing / correlation IDs / metrics</td><td class="c-crit">✘</td><td>No OTel/Prometheus; can't trace a transfer across services</td></tr>
+            <tr><td>Async messaging / event bus / outbox</td><td class="c-crit">✘</td><td>Cross-service money movement is synchronous HTTP orchestration</td></tr>
+            <tr><td>Saga / CQRS</td><td class="c-crit">✘</td><td>Compensation is hand-rolled in <code>transfer_service</code>, not a saga</td></tr>
+          </tbody>
+        </table></div>
+        <p><strong>Recommendation:</strong> introduce (in priority order) an <strong>API gateway</strong> (Kong/Traefik/APISIX) to centralize CORS + auth + rate-limiting; <strong>OpenTelemetry + correlation IDs</strong>; a <strong>resilience layer</strong> (retries with jitter + circuit breaker via <code>tenacity</code>/<code>pybreaker</code>) in the integration clients; and for the transfer flow, evolve the hand-rolled compensation into an explicit <strong>Saga + Transactional Outbox</strong> over a broker (Redis Streams/Kafka) to remove the synchronous multi-hop coupling.</p>
+      </section>
+
+      <!-- API -->
+      <section id="api">
+        <h2><span class="hn">03</span>API design</h2>
+        <p class="lead">Score 6.5 — solid REST + Swagger; let down by cross-service inconsistency.</p>
+        <div class="split">
+          <div class="card"><strong>Good</strong><ul class="tight">
+            <li class="good-li">Consistent <code>/api/v1</code> versioning; proper status codes (201/404/409/422/<strong>423 Locked</strong> with <code>Retry-After</code>).</li>
+            <li class="good-li">C# DTOs request models + <code>response_model</code> on most routes; rich Swagger tags/summaries; custom OpenAPI JWT security scheme (accounts/txn/users).</li>
+            <li class="good-li"><strong>Idempotency-Key</strong> header on all money movement; internal/public separation.</li>
+          </ul></div>
+          <div class="card"><strong>Fix</strong><ul class="tight">
+            <li class="bad-li">Three different error-response shapes (M-8).</li>
+            <li class="bad-li">Prefix/docs-path inconsistency: <code>/api/v1/internal</code> vs <code>/internal/v1</code>; <code>/api/v1/docs</code> vs <code>/docs</code>; <code>API_PREFIX</code> vs <code>API_V1_PREFIX</code>.</li>
+            <li class="bad-li">Accounts list not paginated; no sort params anywhere; some routes return bare <code>dict</code> (no <code>response_model</code>).</li>
+            <li class="bad-li">aadhar/company raise <code>HTTPException(detail=str(e))</code> — unstructured errors.</li>
+          </ul></div>
+        </div>
+      </section>
+
+      <!-- DB -->
+      <section id="db">
+        <h2><span class="hn">04</span>Database</h2>
+        <p class="lead">Score 6.0 — thoughtful portable schema and pooling; migration strategy is the gap (H-5).</p>
+        <ul class="tight">
+          <li class="good-li"><strong>Schema:</strong> sensible indexes + unique constraints + FKs with <code>ON DELETE CASCADE</code> (accounts), <code>Numeric(15,2)</code> money, portable types (Integer autoincrement, String not native ENUM) so one model runs on 5 engines.</li>
+          <li class="good-li"><strong>Pooling:</strong> Entity Framework Core <code>pool_pre_ping</code> (mysql uses <code>pool_recycle</code> to dodge an aiomysql/Entity Framework Core-2.0.23 bug); asyncpg pool min5/max20.</li>
+          <li class="good-li"><strong>Idempotency</strong> table + fail-closed flow; providers auto-create their DB.</li>
+          <li class="bad-li"><strong>H-5</strong> no EF Core Migrations; <code>create_all</code> can't evolve a live schema; 2 migration files empty.</li>
+          <li class="bad-li">No explicit <code>pool_size/max_overflow</code> tuning; per-operation sessions mean multi-step money moves aren't one DB transaction (documented TOCTOU window); no eager-loading (N+1 latent on list/log endpoints).</li>
+          <li class="bad-li">transactions diverges: raw asyncpg for postgres/supabase, <code>DB_*</code> env, global singleton (M-2).</li>
+        </ul>
+      </section>
+
+      <!-- SECURITY -->
+      <section id="sec">
+        <h2><span class="hn">05</span>Security</h2>
+        <p class="lead">Score 4.0 — good primitives undermined by default secrets and PII exposure. See C-1, C-2, H-1…H-4, M-5…M-7.</p>
+        <div class="split">
+          <div class="card"><strong>Done right</strong><ul class="tight">
+            <li class="good-li">Passwords &amp; PINs <strong>bcrypt</strong>-hashed (rounds 12); no plaintext secrets in storage.</li>
+            <li class="good-li">Parameterized SQL (<code>$1,$2</code>); the one f-string query is whitelisted + bound (not injectable, but fragile).</li>
+            <li class="good-li">RBAC enforced via <code>Depends</code>; brute-force throttle on login + PIN; Aadhaar masked in logs.</li>
+          </ul></div>
+          <div class="card"><strong>OWASP gaps</strong><ul class="tight">
+            <li class="bad-li">A02 Crypto failures: default JWT/PIN keys (C-1, M-6 Fernet key from weak default).</li>
+            <li class="bad-li">A05 Misconfig: CORS <code>*</code>+creds (H-1), <code>DEBUG=True</code>, no security headers.</li>
+            <li class="bad-li">A06 Vulnerable components: <code>python-jose 3.3.0</code> (H-3).</li>
+            <li class="bad-li">A01/A07: shared static internal key (C-2), per-process throttle (M-5).</li>
+            <li class="bad-li">A08 Data: Aadhaar plaintext + unmasked (H-4).</li>
+          </ul></div>
+        </div>
+      </section>
+
+      <!-- DEVOPS -->
+      <section id="devops">
+        <h2><span class="hn">06</span>DevOps &amp; SRE</h2>
+        <p class="lead">Score 5.0 — best-in-class local Docker, zero production operations.</p>
+        <div class="split">
+          <div class="card"><strong>Strong</strong><ul class="tight">
+            <li class="good-li">Per-service Dockerfiles + <code>.dockerignore</code>; base compose + 4 provider overrides (postgres/mysql/sqlite/supabase) + <code>docker_up.py</code> helper.</li>
+            <li class="good-li">Frontend multi-stage nginx build with SPA fallback.</li>
+          </ul></div>
+          <div class="card"><strong>Missing (H-6)</strong><ul class="tight">
+            <li class="bad-li">No Kubernetes/Helm; no CI/CD (GitHub Actions/GitLab/Jenkins).</li>
+            <li class="bad-li">No metrics/tracing/centralized logging; healthchecks not wired; only 1/8 services has a logging config.</li>
+            <li class="bad-li">No rollback/release process; secrets shipped inline in compose.</li>
+          </ul></div>
+        </div>
+      </section>
+
+      <!-- TESTING -->
+      <section id="test">
+        <h2><span class="hn">07</span>Testing</h2>
+        <p class="lead">Score 6.0 — good volume (~629 tests) on the core; thin on the edges, no coverage gate or E2E.</p>
+        <ul class="tight">
+          <li class="good-li">~629 <code>def test_</code> across 24 files; every service has <code>conftest.py</code>; broad mocking (<code>AsyncMock</code>/<code>TestClient</code>); integration + API tests on the core services.</li>
+          <li class="bad-li">Coverage uneven: transactions ~232, accounts ~176, users ~173, auth ~27; the 4 mock services ~5–6 each and have <strong>no <code>dotnet test gdb-service-dotnet.slnx.ini</code></strong>.</li>
+          <li class="bad-li">No <code>.coveragerc</code>/coverage threshold; auth declares coverage config but omits <code>dotnet test gdb-service-dotnet.slnx-cov</code>; committed <code>test_output.txt</code> artifacts; <strong>no E2E / load / performance tests</strong>.</li>
+        </ul>
+      </section>
+
+      <!-- DOCS & GIT -->
+      <section id="docs">
+        <h2><span class="hn">08</span>Documentation &amp; Git</h2>
+        <p class="lead">Docs 5.0 · Git process informal.</p>
+        <div class="split">
+          <div class="card"><strong>Docs</strong><ul class="tight">
+            <li class="good-li">High docstring density on the API surface + business logic; comments explain <em>why</em>; 3 polished HTML manuals (setup / docker / architecture).</li>
+            <li class="bad-li"><strong>No README</strong> anywhere; no <code>docs/</code>, no ADRs, no OpenAPI-beyond-auto; setup lives in helper scripts; <code>database_setup.sql</code> empty.</li>
+          </ul></div>
+          <div class="card"><strong>Git</strong><ul class="tight">
+            <li class="good-li">Repo with remote; branch convention hints (<code>bugfix/*</code>, <code>&lt;area&gt;/fixes-and-crs</code>); clean tree.</li>
+            <li class="bad-li">Only 7 commits (large batched, partial Conventional-Commits); <strong>no tags / no semantic-version releases</strong> despite code claiming <code>1.0.0</code>; no PR/review gates (no CI).</li>
+          </ul></div>
+        </div>
+      </section>
+
+      <!-- QUICK WINS -->
+      <section id="quickwins">
+        <h2>Quick wins <span style="font-size:14px;font-weight:500;color:var(--ink-faint)">— high value, ≤1 day each</span></h2>
+        <div class="tbl"><table>
+          <thead><tr><th>#</th><th>Action</th><th>Why</th></tr></thead>
+          <tbody>
+            <tr><td class="mono">1</td><td>Startup guard: refuse to boot in prod with default/empty JWT or internal key</td><td>Neutralizes C-1/C-2 blast radius immediately</td></tr>
+            <tr><td class="mono">2</td><td>Swap secret comparisons to <code>hmac.compare_digest</code></td><td>Removes timing side-channel (C-2)</td></tr>
+            <tr><td class="mono">3</td><td>Remove <code>*</code> from CORS lists; default <code>DEBUG=False</code></td><td>Closes H-1 / M-7</td></tr>
+            <tr><td class="mono">4</td><td>Add a secure-headers middleware</td><td>HSTS/CSP/X-Frame (M-6)</td></tr>
+            <tr><td class="mono">5</td><td>Delete empty <code>database_setup.sql</code> &amp; <code>001_add_role_column.sql</code>; remove committed <code>test_output.txt</code></td><td>Removes misleading/dead files</td></tr>
+            <tr><td class="mono">6</td><td>Add a root <code>README.md</code> + link the 3 HTML manuals</td><td>Onboarding (Docs)</td></tr>
+            <tr><td class="mono">7</td><td>Add <code>pip-audit</code> + <code>gitleaks</code> pre-commit hooks</td><td>Catches H-2/H-3 going forward</td></tr>
+          </tbody>
+        </table></div>
+      </section>
+
+      <!-- ROADMAP -->
+      <section id="roadmap">
+        <h2>Recommended remediation roadmap</h2>
+        <p class="lead">Sequenced by risk-reduction per effort. Nothing here is a rewrite.</p>
+        <div style="display:flex;flex-direction:column;gap:18px;margin-top:8px">
+          <div class="phase"><span class="when">Phase 0 · week 1 · Stop-the-bleed</span><h3>Security defaults</h3>
+            <p>Quick wins 1–4 + inject JWT/internal keys from a secrets store; remove <code>.env.production</code> from git (H-2). <strong>Exit gate for any shared/staging deploy.</strong></p></div>
+          <div class="phase"><span class="when">Phase 1 · weeks 2–4 · Trust &amp; correctness</span><h3>AuthN/Z + money + deps</h3>
+            <p>RS256/JWKS (C-1) &amp; mTLS or signed service tokens (C-2); upgrade vulnerable deps + Dependabot (H-3); Decimal end-to-end (M-1); encrypt + mask Aadhaar (H-4).</p></div>
+          <div class="phase"><span class="when">Phase 2 · weeks 3–6 · Operability</span><h3>CI/CD + observability + migrations</h3>
+            <p>GitHub Actions (lint+tests+audit+build); OpenTelemetry + correlation-ID middleware + structured logging; wire health/ready/live; EF Core Migrations per service, migrations as a deploy step (H-5, H-6).</p></div>
+          <div class="phase"><span class="when">Phase 3 · weeks 6–10 · Consolidation</span><h3>Shared library + consistency</h3>
+            <p>Extract <code>gdb_common</code> (auth, providers, logging, errors, secure-headers) → kills M-3/M-4; unify data-access on Entity Framework Core (M-2); standard error schema + prefixes (M-8); Redis-backed throttle/idempotency (M-5); pagination everywhere (M-9).</p></div>
+          <div class="phase"><span class="when">Phase 4 · quarter 2 · Scale-out</span><h3>Gateway, resilience, eventing</h3>
+            <p>API gateway (CORS/auth/rate-limit centralized); retries+circuit breakers; Saga + Transactional Outbox over a broker for the transfer flow; Kubernetes + Helm; coverage gate + E2E/load tests.</p></div>
+        </div>
+      </section>
+
+      <!-- TARGET -->
+      <section id="target">
+        <h2>Recommended target architecture &amp; structure</h2>
+        <div class="split">
+          <div>
+            <h3>Target platform</h3>
+            <ul class="tight">
+              <li>Clients → <strong>API Gateway</strong> (TLS, CORS, JWT verify via JWKS, rate-limit, routing).</li>
+              <li>Services stay stateless behind the gateway; <strong>RS256</strong> tokens from <code>auth</code>, verified with public keys.</li>
+              <li>East-west via <strong>mTLS/service-mesh</strong>; resilient clients (retry+breaker+timeout).</li>
+              <li>Transfer flow → <strong>Saga + Outbox</strong> over Kafka/Redis Streams; Redis for shared throttle/idempotency/cache.</li>
+              <li><strong>OpenTelemetry</strong> everywhere → traces/metrics/logs with a correlation ID; Prometheus + Grafana; EF Core Migrations-managed schemas; <strong>Kubernetes + Helm</strong>; secrets via Vault/K8s Secrets.</li>
+            </ul>
+          </div>
+          <div>
+            <h3>Recommended repo shape</h3>
+            <div class="pre"><span class="c"># monorepo with a shared package</span>
+libs/
+  <span class="a">gdb_common/</span>        <span class="c"># auth(JWKS), providers,</span>
+                    <span class="c"># logging, errors, headers</span>
+services/
+  accounts/ transactions/ auth/ ...
+    app/
+      api/          <span class="c"># adapters (HTTP)</span>
+      domain/       <span class="c"># entities + rules (pure)</span>
+      services/     <span class="c"># use-cases</span>
+      ports/        <span class="c"># repo/integration ifaces</span>
+      adapters/     <span class="c"># db, http clients</span>
+      migrations/   <span class="c"># EF Core Migrations</span>
+platform/
+  gateway/  k8s/  helm/  observability/
+.github/workflows/  <span class="c"># CI/CD</span></div>
+          </div>
+        </div>
+        <div class="card"><strong>12-Factor / Cloud-Native gaps to close:</strong> III Config (secrets in git → externalize), XI Logs (bare logging → structured streams), V Build/release/run (no CI/CD, no immutable release tags), IX Disposability &amp; health (wire probes), X dev/prod parity (create_all vs real migrations). Backing services (DBs) and stateless processes are already close to compliant.</div>
+      </section>
+
+      <p style="color:var(--ink-faint);font-size:13.5px;margin-top:30px">Prepared as a read-only Architecture Review Board assessment of the <code>python-fullstack-sol-v1</code> branch. No source was modified. Scores are relative to an enterprise "production-at-scale" bar; against its actual purpose as a training reference, the codebase is above average. Awaiting approval before any implementation.</p>
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap"><span>GDB Banking — Enterprise Architecture Audit</span><span>Read-only · evidence-based · no code modified</span></div>
+</footer>
+
+

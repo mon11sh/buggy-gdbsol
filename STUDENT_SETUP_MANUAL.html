@@ -1,0 +1,996 @@
+<title>GDB Setup Manual for Students</title>
+<style>
+  :root{
+    --paper:#F5F7FC; --surface:#FFFFFF; --surface-2:#FBFCFE;
+    --ink:#161B29; --ink-soft:#46506A; --ink-faint:#7B849B;
+    --line:#E2E7F1; --line-strong:#C7D0E1;
+    --accent:#3450CE; --accent-ink:#2138A6; --accent-wash:#EBEFFC;
+    --good:#0C9A69; --good-wash:#E4F5EE;
+    --warn:#B26A08; --warn-wash:#FBF1DF;
+    --danger:#CE3D28; --danger-wash:#FBE9E6;
+    --code-bg:#0D1426; --code-ink:#D8E1F5; --code-faint:#7F8DB0;
+    --radius:14px;
+    --mono:ui-monospace,"Cascadia Code","Cascadia Mono","Consolas","SFMono-Regular",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI Variable","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0E1220; --surface:#151B2B; --surface-2:#1A2233;
+      --ink:#EAEEF8; --ink-soft:#AEB8CE; --ink-faint:#76809A;
+      --line:#252F49; --line-strong:#33405F;
+      --accent:#8299FF; --accent-ink:#A9B8FF; --accent-wash:#1C2440;
+      --good:#3BC48D; --good-wash:#16281F;
+      --warn:#E0A34A; --warn-wash:#2C2214;
+      --danger:#F0745E; --danger-wash:#2E1712;
+      --code-bg:#080D19; --code-ink:#D2DBF0; --code-faint:#6C7A9E;
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#F5F7FC; --surface:#FFFFFF; --surface-2:#FBFCFE;
+    --ink:#161B29; --ink-soft:#46506A; --ink-faint:#7B849B;
+    --line:#E2E7F1; --line-strong:#C7D0E1;
+    --accent:#3450CE; --accent-ink:#2138A6; --accent-wash:#EBEFFC;
+    --good:#0C9A69; --good-wash:#E4F5EE; --warn:#B26A08; --warn-wash:#FBF1DF;
+    --danger:#CE3D28; --danger-wash:#FBE9E6;
+    --code-bg:#0D1426; --code-ink:#D8E1F5; --code-faint:#7F8DB0;
+  }
+  :root[data-theme="dark"]{
+    --paper:#0E1220; --surface:#151B2B; --surface-2:#1A2233;
+    --ink:#EAEEF8; --ink-soft:#AEB8CE; --ink-faint:#76809A;
+    --line:#252F49; --line-strong:#33405F;
+    --accent:#8299FF; --accent-ink:#A9B8FF; --accent-wash:#1C2440;
+    --good:#3BC48D; --good-wash:#16281F; --warn:#E0A34A; --warn-wash:#2C2214;
+    --danger:#F0745E; --danger-wash:#2E1712;
+    --code-bg:#080D19; --code-ink:#D2DBF0; --code-faint:#6C7A9E;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--paper); color:var(--ink);
+    font-family:var(--sans); line-height:1.62;
+    -webkit-font-smoothing:antialiased; font-size:16.5px;
+  }
+  .wrap{max-width:1180px; margin:0 auto; padding:0 22px}
+
+  /* ---------- Masthead ---------- */
+  .masthead{
+    background:
+      linear-gradient(180deg, color-mix(in srgb, var(--accent) 8%, var(--surface)) 0%, var(--surface) 100%);
+    border-bottom:1px solid var(--line);
+  }
+  .masthead .wrap{padding:46px 22px 40px}
+  .kicker{
+    font-family:var(--mono); font-size:12.5px; letter-spacing:.22em;
+    text-transform:uppercase; color:var(--accent-ink); font-weight:700;
+    display:flex; align-items:center; gap:10px;
+  }
+  .kicker::before{content:""; width:26px; height:2px; background:var(--accent); display:inline-block}
+  h1.title{
+    font-size:clamp(30px,5vw,50px); line-height:1.04; margin:.34em 0 .18em;
+    letter-spacing:-.02em; text-wrap:balance; font-weight:800;
+  }
+  .lede{font-size:clamp(16px,2vw,19px); color:var(--ink-soft); max-width:60ch; margin:0}
+  .stamp-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:22px}
+  .stamp{
+    font-family:var(--mono); font-size:12.5px; font-weight:600;
+    padding:7px 12px; border-radius:999px; border:1px solid var(--line-strong);
+    background:var(--surface); color:var(--ink-soft); display:inline-flex; gap:7px; align-items:center;
+  }
+  .stamp b{color:var(--ink)}
+
+  /* ---------- Layout ---------- */
+  .shell{display:grid; grid-template-columns:236px minmax(0,1fr); gap:44px; padding:40px 0 90px}
+  @media (max-width:900px){ .shell{grid-template-columns:1fr; gap:8px} }
+
+  nav.toc{position:sticky; top:20px; align-self:start; font-size:14.5px}
+  @media (max-width:900px){
+    nav.toc{position:static; border:1px solid var(--line); border-radius:var(--radius);
+      background:var(--surface); padding:14px 16px; margin-bottom:14px}
+  }
+  nav.toc .toc-h{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--ink-faint); margin:0 0 12px; font-weight:700}
+  nav.toc ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px}
+  nav.toc a{
+    display:flex; gap:11px; align-items:baseline; text-decoration:none; color:var(--ink-soft);
+    padding:6px 9px; border-radius:8px; border-left:2px solid transparent;
+  }
+  nav.toc a:hover{background:var(--accent-wash); color:var(--ink)}
+  nav.toc a .n{font-family:var(--mono); font-size:12px; color:var(--accent-ink); font-weight:700; min-width:16px}
+
+  main{min-width:0}
+
+  /* ---------- Sections ---------- */
+  section{scroll-margin-top:20px; margin-bottom:52px}
+  .sec-head{display:flex; gap:16px; align-items:flex-start; margin-bottom:8px}
+  .sec-num{
+    font-family:var(--mono); font-weight:800; font-size:14px; color:var(--accent-ink);
+    border:1.5px solid var(--accent); border-radius:9px; padding:5px 9px; line-height:1;
+    background:var(--accent-wash); white-space:nowrap; margin-top:6px;
+  }
+  h2{font-size:clamp(23px,3.2vw,31px); letter-spacing:-.015em; margin:0; text-wrap:balance; font-weight:800}
+  .sec-head p{margin:6px 0 0; color:var(--ink-soft)}
+  h3{font-size:20px; letter-spacing:-.01em; margin:34px 0 10px; font-weight:750}
+  h4{font-size:16px; margin:22px 0 8px; font-weight:700}
+  p{margin:12px 0}
+  a{color:var(--accent-ink); text-decoration-thickness:1.5px; text-underline-offset:2px}
+  strong{font-weight:700}
+  hr.rule{border:none; border-top:1px solid var(--line); margin:30px 0}
+
+  /* ---------- Cards ---------- */
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px 24px; margin:18px 0}
+  .card.tight{padding:16px 18px}
+
+  /* ---------- Callouts ---------- */
+  .note{border-left:3px solid var(--accent); background:var(--accent-wash);
+    border-radius:0 10px 10px 0; padding:13px 16px; margin:16px 0; color:var(--ink)}
+  .note.good{border-color:var(--good); background:var(--good-wash)}
+  .note.warn{border-color:var(--warn); background:var(--warn-wash)}
+  .note.danger{border-color:var(--danger); background:var(--danger-wash)}
+  .note .lab{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase;
+    font-weight:700; display:block; margin-bottom:3px; opacity:.85}
+  .note p{margin:4px 0}
+
+  /* ---------- Terminal / command blocks ---------- */
+  .term{background:var(--code-bg); border-radius:11px; overflow:hidden; margin:14px 0;
+    border:1px solid color-mix(in srgb, var(--code-bg) 60%, #000); box-shadow:0 8px 26px rgba(10,16,34,.18)}
+  .term-bar{display:flex; align-items:center; gap:8px; padding:9px 13px;
+    background:color-mix(in srgb, var(--code-bg) 82%, #fff 6%); border-bottom:1px solid rgba(255,255,255,.06)}
+  .term-bar .dot{width:11px; height:11px; border-radius:50%}
+  .dot.r{background:#F0685C} .dot.y{background:#F4BF4F} .dot.g{background:#61C554}
+  .term-bar .tt{font-family:var(--mono); font-size:12px; color:var(--code-faint); margin-left:8px}
+  .term pre{margin:0; padding:15px 16px; overflow-x:auto; font-family:var(--mono);
+    font-size:13.5px; line-height:1.7; color:var(--code-ink)}
+  .term pre .cmt{color:var(--code-faint)}
+  .term pre .pmt{color:#61C554} .term pre .out{color:#8fa0c9}
+  .term pre b{color:#fff; font-weight:600}
+  code.inl{font-family:var(--mono); font-size:.9em; background:var(--accent-wash); color:var(--accent-ink);
+    padding:2px 6px; border-radius:6px; border:1px solid color-mix(in srgb,var(--accent) 22%, transparent)}
+
+  /* ---------- Figures ---------- */
+  figure{margin:20px 0; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--surface-2)}
+  figure .fig-cap{font-size:13px; color:var(--ink-faint); padding:10px 15px; border-top:1px solid var(--line);
+    font-family:var(--mono); letter-spacing:.02em; display:flex; gap:8px; align-items:center}
+  figure .fig-cap b{color:var(--ink-soft); font-weight:700}
+  figure svg{display:block; width:100%; height:auto}
+
+  /* ---------- Steps ---------- */
+  ol.steps{counter-reset:st; list-style:none; padding:0; margin:16px 0; display:flex; flex-direction:column; gap:12px}
+  ol.steps>li{counter-increment:st; position:relative; padding:14px 16px 14px 52px;
+    background:var(--surface); border:1px solid var(--line); border-radius:11px}
+  ol.steps>li::before{content:counter(st); position:absolute; left:14px; top:13px;
+    font-family:var(--mono); font-weight:800; font-size:13px; color:#fff; background:var(--accent);
+    width:24px; height:24px; border-radius:7px; display:grid; place-items:center}
+  ol.steps>li strong:first-child{display:block; margin-bottom:2px}
+
+  /* ---------- Tables ---------- */
+  .tbl-scroll{overflow-x:auto; margin:16px 0; border:1px solid var(--line); border-radius:var(--radius)}
+  table{border-collapse:collapse; width:100%; font-size:14.5px; min-width:520px}
+  th,td{text-align:left; padding:11px 15px; border-bottom:1px solid var(--line); vertical-align:top}
+  thead th{background:var(--surface-2); font-size:12.5px; letter-spacing:.04em; text-transform:uppercase;
+    color:var(--ink-faint); font-weight:700; white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  td.mono,th.mono,.num{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  td.mono{color:var(--accent-ink)}
+
+  .pill{display:inline-block; font-family:var(--mono); font-size:11.5px; font-weight:700; padding:2px 9px;
+    border-radius:999px; border:1px solid currentColor}
+  .pill.ok{color:var(--good)} .pill.no{color:var(--ink-faint)} .pill.cloud{color:var(--accent-ink)}
+
+  /* ---------- Provider grid ---------- */
+  .prov-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin:18px 0}
+  .prov{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 17px;
+    display:flex; flex-direction:column; gap:8px}
+  .prov .pv-top{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .prov h4{margin:0; font-size:16px}
+  .prov .diff{font-family:var(--mono); font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px}
+  .diff.easy{background:var(--good-wash); color:var(--good)}
+  .diff.mid{background:var(--warn-wash); color:var(--warn)}
+  .prov p{margin:0; font-size:13.5px; color:var(--ink-soft)}
+  .prov .pv-cmd{font-family:var(--mono); font-size:12px; background:var(--code-bg); color:var(--code-ink);
+    padding:8px 10px; border-radius:8px; overflow-x:auto; margin-top:auto}
+
+  footer{border-top:1px solid var(--line); padding:26px 0 60px; color:var(--ink-faint); font-size:13.5px}
+  footer .wrap{display:flex; flex-wrap:wrap; gap:14px; justify-content:space-between}
+
+  ul.clean{margin:12px 0; padding-left:20px}
+  ul.clean li{margin:5px 0}
+  kbd{font-family:var(--mono); font-size:.85em; background:var(--surface); border:1px solid var(--line-strong);
+    border-bottom-width:2px; border-radius:6px; padding:1px 6px; color:var(--ink)}
+
+  @media (prefers-reduced-motion:no-preference){
+    nav.toc a{transition:background .15s ease, color .15s ease}
+    .prov{transition:transform .15s ease, box-shadow .15s ease}
+    .prov:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(20,30,60,.08)}
+  }
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="kicker">Global Digital Bank &middot; Student Handbook</div>
+    <h1 class="title">Setting up the GDB banking app, from a blank laptop to running.</h1>
+    <p class="lede">A complete, do-it-yourself guide to installing the tools, preparing the code, and running all
+      8 microservices + the web app against any of <strong>five</strong> databases &mdash; SQLite, In-Memory,
+      PostgreSQL (pgAdmin), MySQL, or Supabase.</p>
+    <div class="stamp-row">
+      <span class="stamp">🐍 Python <b>3.11+</b></span>
+      <span class="stamp">🟩 Node.js <b>18+</b></span>
+      <span class="stamp">🏦 <b>8</b> services + <b>1</b> web app</span>
+      <span class="stamp">🗄️ <b>5</b> database options</span>
+      <span class="stamp">🔑 login <b>admin / Welcome@1</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="shell">
+
+    <nav class="toc" aria-label="Contents">
+      <p class="toc-h">Contents</p>
+      <ol>
+        <li><a href="#big-picture"><span class="n">00</span><span>The big picture</span></a></li>
+        <li><a href="#software"><span class="n">01</span><span>Install the software</span></a></li>
+        <li><a href="#code"><span class="n">02</span><span>Prepare the codebase</span></a></li>
+        <li><a href="#choose"><span class="n">03</span><span>Choose a database</span></a></li>
+        <li><a href="#setup"><span class="n">04</span><span>Set up each database</span></a></li>
+        <li><a href="#run"><span class="n">05</span><span>Run all the servers</span></a></li>
+        <li><a href="#use"><span class="n">06</span><span>Use &amp; verify</span></a></li>
+        <li><a href="#switch"><span class="n">07</span><span>Switch databases</span></a></li>
+        <li><a href="#trouble"><span class="n">08</span><span>Troubleshooting</span></a></li>
+        <li><a href="#cheat"><span class="n">09</span><span>Quick reference</span></a></li>
+      </ol>
+    </nav>
+
+    <main>
+
+      <!-- ============ CROSS-LINK TO DOCKER EDITION ============ -->
+      <div class="note" style="display:flex; flex-wrap:wrap; gap:12px 18px; align-items:center; justify-content:space-between">
+        <span><span class="lab" style="margin-bottom:0">💻 This is the Local edition (run directly on your machine)</span>
+          Got Docker, or a capable laptop and want one command instead? Use the Docker edition.</span>
+        <a href="https://claude.ai/code/artifact/8c406364-90c6-4309-8147-8b0ecf07a509"
+           style="white-space:nowrap; font-weight:700; text-decoration:none; background:var(--surface);
+           border:1px solid var(--accent); color:var(--accent-ink); padding:8px 14px; border-radius:9px">🐳 Open the Docker manual →</a>
+      </div>
+
+      <!-- ============ ABOUT THE FIGURES ============ -->
+      <div class="note">
+        <span class="lab">About the pictures in this manual</span>
+        <p>Every diagram below is a <strong>labeled reference drawing</strong> of what you should see on screen at that
+        step &mdash; the installer checkbox to tick, the windows that open, the pgAdmin tree, the login page. Match the
+        real screen to the drawing. They are illustrations, not photographs.</p>
+      </div>
+
+      <!-- ============ 00 BIG PICTURE ============ -->
+      <section id="big-picture">
+        <div class="sec-head">
+          <span class="sec-num">00</span>
+          <div><h2>The big picture: what you are about to run</h2>
+          <p>GDB is a small bank built as many little programs (“microservices”) that talk to each other, plus a
+          website. Each backend service is a Python program; the website is a React app.</p></div>
+        </div>
+
+        <figure>
+          <svg viewBox="0 0 900 400" role="img" aria-label="Architecture: browser to frontend to eight backend services to one database">
+            <defs>
+              <style>
+                .lbl{font:600 13px var(--mono,monospace); fill:#fff}
+                .sub{font:11px monospace; fill:#c7d0e1}
+                .cap{font:700 12px sans-serif; fill:#46506A}
+              </style>
+            </defs>
+            <rect x="0" y="0" width="900" height="400" fill="none"/>
+            <!-- Browser -->
+            <rect x="30" y="150" width="120" height="90" rx="10" fill="#3450CE"/>
+            <text x="90" y="190" text-anchor="middle" class="lbl">Browser</text>
+            <text x="90" y="210" text-anchor="middle" class="sub">student</text>
+            <!-- Frontend -->
+            <rect x="200" y="150" width="140" height="90" rx="10" fill="#0C9A69"/>
+            <text x="270" y="188" text-anchor="middle" class="lbl">Frontend</text>
+            <text x="270" y="208" text-anchor="middle" class="sub">React · :3000</text>
+            <!-- arrows -->
+            <line x1="150" y1="195" x2="198" y2="195" stroke="#7B849B" stroke-width="2" marker-end="url(#ar)"/>
+            <line x1="340" y1="195" x2="388" y2="195" stroke="#7B849B" stroke-width="2" marker-end="url(#ar)"/>
+            <defs><marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+              <path d="M0,0 L9,4.5 L0,9 Z" fill="#7B849B"/></marker></defs>
+            <!-- services cluster -->
+            <rect x="390" y="24" width="330" height="352" rx="12" fill="none" stroke="#C7D0E1" stroke-dasharray="4 4"/>
+            <text x="405" y="46" class="cap">8 backend microservices (ASP.NET Core Web API)</text>
+            <g font-family="monospace">
+              <!-- rows of service chips -->
+              <g>
+                <rect x="405" y="60" width="145" height="40" rx="8" fill="#1A2233"/><text x="415" y="78" class="lbl">auth</text><text x="415" y="93" class="sub">:8004</text>
+                <rect x="560" y="60" width="145" height="40" rx="8" fill="#1A2233"/><text x="570" y="78" class="lbl">users</text><text x="570" y="93" class="sub">:8003</text>
+                <rect x="405" y="108" width="145" height="40" rx="8" fill="#1A2233"/><text x="415" y="126" class="lbl">accounts</text><text x="415" y="141" class="sub">:8001</text>
+                <rect x="560" y="108" width="145" height="40" rx="8" fill="#1A2233"/><text x="570" y="126" class="lbl">transactions</text><text x="570" y="141" class="sub">:8002</text>
+                <rect x="405" y="156" width="145" height="40" rx="8" fill="#33405F"/><text x="415" y="174" class="lbl">aadhar</text><text x="415" y="189" class="sub">:8005 · mock</text>
+                <rect x="560" y="156" width="145" height="40" rx="8" fill="#33405F"/><text x="570" y="174" class="lbl">company</text><text x="570" y="189" class="sub">:8006 · mock</text>
+                <rect x="405" y="204" width="145" height="40" rx="8" fill="#33405F"/><text x="415" y="222" class="lbl">notification</text><text x="415" y="237" class="sub">:8007 · mock</text>
+                <rect x="560" y="204" width="145" height="40" rx="8" fill="#33405F"/><text x="570" y="222" class="lbl">payment gw</text><text x="570" y="237" class="sub">:8008 · mock</text>
+              </g>
+            </g>
+            <text x="405" y="272" class="cap" fill="#7B849B">Dark = stores data · Grey = mock helper (no DB)</text>
+            <!-- DB -->
+            <path d="M760,150 q0,-16 40,-16 q40,0 40,16 l0,70 q0,16 -40,16 q-40,0 -40,-16 Z" fill="#B26A08"/>
+            <ellipse cx="800" cy="150" rx="40" ry="16" fill="#C77F17"/>
+            <text x="800" y="200" text-anchor="middle" class="lbl">DB</text>
+            <text x="800" y="300" text-anchor="middle" class="cap" fill="#7B849B">one of 5</text>
+            <line x1="705" y1="128" x2="758" y2="150" stroke="#7B849B" stroke-width="2" marker-end="url(#ar)"/>
+          </svg>
+          <figcaption class="fig-cap"><b>FIG 00</b> Browser → React frontend → 8 backend services → your chosen database.</figcaption>
+        </figure>
+
+        <p>The four <strong>dark</strong> services (auth, users, accounts, transactions) save data, so they need a
+        database. The four <strong>grey</strong> ones are pretend “helper” services (Aadhar check, company check,
+        notifications, payment gateway) and need no database. <strong>You never change the code</strong> to switch
+        databases &mdash; you only change one setting. That is the whole point of this project.</p>
+      </section>
+
+      <!-- ============ 01 SOFTWARE ============ -->
+      <section id="software">
+        <div class="sec-head">
+          <span class="sec-num">01</span>
+          <div><h2>Install the required software</h2>
+          <p>Do the first two (Python + Node.js) for everybody. Then install <em>only</em> the database tool you plan
+          to use. In-Memory and SQLite need nothing extra at all.</p></div>
+        </div>
+
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Tool</th><th>Version</th><th>Needed for</th><th>Required?</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Python</strong></td><td class="num">3.11+</td><td>every backend service</td><td><span class="pill ok">ALWAYS</span></td></tr>
+              <tr><td><strong>Node.js + npm</strong></td><td class="num">18+</td><td>the web frontend</td><td><span class="pill ok">ALWAYS</span></td></tr>
+              <tr><td><strong>VS Code</strong></td><td class="num">latest</td><td>editing &amp; running commands</td><td><span class="pill ok">RECOMMENDED</span></td></tr>
+              <tr><td><strong>PostgreSQL + pgAdmin</strong></td><td class="num">16+</td><td>the “pgAdmin” database</td><td><span class="pill no">only if used</span></td></tr>
+              <tr><td><strong>MySQL + Workbench</strong></td><td class="num">8.0+</td><td>the “MySQL” database</td><td><span class="pill no">only if used</span></td></tr>
+              <tr><td><strong>SQLite</strong></td><td class="num">built-in</td><td>the “SQLite” database</td><td><span class="pill ok">nothing to install</span></td></tr>
+              <tr><td><strong>Supabase</strong></td><td class="num">account</td><td>the cloud database</td><td><span class="pill cloud">free sign-up</span></td></tr>
+              <tr><td><strong>In-Memory</strong></td><td class="num">—</td><td>quick demo, no storage</td><td><span class="pill ok">nothing to install</span></td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Python -->
+        <h3>1.1 &nbsp;Python 3.11 or newer <span style="font-size:14px;color:var(--ink-faint);font-weight:400">(runs every backend service)</span></h3>
+        <ol class="steps">
+          <li><strong>Open the download page.</strong> In your browser go to
+            <a href="https://www.python.org/downloads/">python.org/downloads</a>.</li>
+          <li><strong>Download the installer.</strong> Click the big yellow
+            <em>“Download Python 3.13.x”</em> button (any 3.11, 3.12 or 3.13 is fine). The
+            <code class="inl">.exe</code> lands in your <em>Downloads</em> folder.</li>
+          <li><strong>Run the installer.</strong> Double-click the downloaded file and approve the Windows prompt.</li>
+          <li><strong>Tick “Add python.exe to PATH”.</strong> It is the checkbox at the <em>bottom</em> of the first
+            screen (see FIG 01). This is the step everyone forgets &mdash; do it before anything else.</li>
+          <li><strong>Click “Install Now”</strong> and wait for it to finish.</li>
+          <li><strong>Finish up.</strong> If a <em>“Disable path length limit”</em> button appears at the end, click
+            it, then click <em>Close</em>.</li>
+        </ol>
+
+        <figure>
+          <svg viewBox="0 0 900 300" role="img" aria-label="Python installer window with Add to PATH checkbox ticked">
+            <rect x="0" y="0" width="900" height="300" fill="#1A2233"/>
+            <rect x="120" y="30" width="660" height="240" rx="10" fill="#F5F7FC" stroke="#C7D0E1"/>
+            <rect x="120" y="30" width="660" height="40" rx="10" fill="#3450CE"/>
+            <text x="145" y="56" font-family="sans-serif" font-weight="700" font-size="15" fill="#fff">Install Python 3.11</text>
+            <rect x="160" y="100" width="380" height="46" rx="8" fill="#3450CE"/>
+            <text x="180" y="129" font-family="sans-serif" font-size="15" font-weight="700" fill="#fff">Install Now</text>
+            <rect x="160" y="160" width="380" height="40" rx="8" fill="#EBEFFC" stroke="#C7D0E1"/>
+            <text x="180" y="185" font-family="sans-serif" font-size="14" fill="#46506A">Customize installation</text>
+            <!-- checkbox -->
+            <rect x="160" y="216" width="22" height="22" rx="5" fill="#0C9A69"/>
+            <path d="M165,227 l4,5 l8,-10" stroke="#fff" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            <text x="192" y="232" font-family="sans-serif" font-size="14.5" font-weight="700" fill="#161B29">Add python.exe to PATH</text>
+            <!-- arrow callout -->
+            <path d="M640,227 C560,227 520,227 480,227" stroke="#CE3D28" stroke-width="2.5" fill="none" marker-end="url(#rr)"/>
+            <defs><marker id="rr" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#CE3D28"/></marker></defs>
+            <rect x="640" y="205" width="150" height="44" rx="8" fill="#FBE9E6" stroke="#CE3D28"/>
+            <text x="715" y="224" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#CE3D28">TICK THIS BOX</text>
+            <text x="715" y="240" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#CE3D28">before Install Now</text>
+          </svg>
+          <figcaption class="fig-cap"><b>FIG 01</b> Python installer &mdash; tick “Add python.exe to PATH”, then “Install Now”.</figcaption>
+        </figure>
+
+        <p>Then open a <strong>new</strong> PowerShell window and check it worked:</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">PowerShell</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>python --version</b>
+<span class="out">Python 3.11.9</span>          <span class="cmt"># any 3.11 / 3.12 / 3.13 is fine</span>
+<span class="pmt">PS&gt;</span> <b>pip --version</b>
+<span class="out">pip 24.0 from ...</span></pre>
+        </div>
+        <div class="note warn"><span class="lab">If “python” is not recognized</span>
+          <p>You forgot the PATH tick. Re-run the installer → “Modify” → tick “Add to PATH” → close and reopen the
+          terminal. A brand-new terminal is required for the change to take effect.</p></div>
+
+        <!-- Node -->
+        <h3>1.2 &nbsp;Node.js + npm <span style="font-size:14px;color:var(--ink-faint);font-weight:400">(runs the web frontend)</span></h3>
+        <ol class="steps">
+          <li><strong>Open</strong> <a href="https://nodejs.org/">nodejs.org</a>.</li>
+          <li><strong>Download the LTS build.</strong> Click the green button that says <em>“LTS”</em>
+            (Long-Term Support = the stable one). It downloads a <code class="inl">.msi</code> installer.</li>
+          <li><strong>Run it.</strong> Double-click, click <em>Next</em>, accept the licence, <em>Next</em>.</li>
+          <li><strong>Keep the defaults</strong> for the install folder and the feature list &mdash; just keep clicking
+            <em>Next</em>. <code class="inl">npm</code> is included automatically.</li>
+          <li><strong>Tools for Native Modules:</strong> leave that checkbox <em>un</em>ticked (not needed here) →
+            <em>Next</em>.</li>
+          <li><strong>Click Install</strong>, approve the prompt, then <em>Finish</em>.</li>
+        </ol>
+        <p>Open a <strong>new</strong> terminal and verify:</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">PowerShell</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>node --version</b>
+<span class="out">v20.11.1</span>
+<span class="pmt">PS&gt;</span> <b>npm --version</b>
+<span class="out">10.2.4</span></pre>
+        </div>
+
+        <!-- VS Code -->
+        <h3>1.3 &nbsp;VS Code <span style="font-size:14px;color:var(--ink-faint);font-weight:400">(where you type the commands)</span></h3>
+        <ol class="steps">
+          <li><strong>Download</strong> from <a href="https://code.visualstudio.com/">code.visualstudio.com</a> &mdash;
+            click <em>“Download for Windows”</em>.</li>
+          <li><strong>Install.</strong> Run the installer, accept the agreement, keep clicking <em>Next</em>.</li>
+          <li><strong>On “Select Additional Tasks”</strong> tick <em>“Add to PATH”</em> and both
+            <em>“Open with Code”</em> options → <em>Next</em> → <em>Install</em> → <em>Finish</em>.</li>
+          <li><strong>Open the project.</strong> In VS Code: <em>File → Open Folder</em> → select the
+            <code class="inl">gdb-service</code> folder → <em>Select Folder</em>.</li>
+          <li><strong>Open a terminal inside it.</strong> Menu <em>Terminal → New Terminal</em>, or press
+            <kbd>Ctrl</kbd>+<kbd>`</kbd>. Make sure the dropdown on the right of the terminal says
+            <strong>PowerShell</strong>.</li>
+        </ol>
+        <div class="note"><span class="lab">This is your command line</span>
+          <p>Every <code class="inl">python …</code> command in this manual is typed into that VS Code terminal, with
+          the <code class="inl">gdb-service</code> folder open.</p></div>
+
+        <!-- Postgres -->
+        <h3>1.4 &nbsp;PostgreSQL + pgAdmin &nbsp;<span class="pill no">only for the pgAdmin database</span></h3>
+        <p>One installer gives you <strong>both</strong> the PostgreSQL <em>server</em> and <strong>pgAdmin</strong>
+        (the window you look inside it with).</p>
+        <ol class="steps">
+          <li><strong>Open the download page</strong>
+            <a href="https://www.postgresql.org/download/windows/">postgresql.org/download/windows</a> and click
+            <em>“Download the installer”</em>.</li>
+          <li><strong>Download</strong> the latest version (16 or 17) for <em>Windows x86-64</em> from the EDB page.</li>
+          <li><strong>Run the installer</strong>, approve the prompt, click <em>Next</em> through the welcome and the
+            default install folder.</li>
+          <li><strong>Select Components:</strong> keep <em>PostgreSQL Server</em>, <em>pgAdmin 4</em> and
+            <em>Command Line Tools</em> ticked. You can untick <em>Stack Builder</em>. → <em>Next</em>.</li>
+          <li><strong>Keep the default Data Directory</strong> → <em>Next</em>.</li>
+          <li><strong>Set the superuser password.</strong> This is the password for the <code class="inl">postgres</code>
+            user. Type it twice and <strong>write it down</strong> &mdash; you pass it to
+            <code class="inl">setup_env.py</code> later (see FIG 02). → <em>Next</em>.</li>
+          <li><strong>Keep Port <span class="num">5432</span></strong> → <em>Next</em>, keep the default locale →
+            <em>Next</em> → <em>Next</em> → <em>Install</em>.</li>
+          <li><strong>Finish.</strong> If it offers <em>Stack Builder</em> at the end, untick it and click
+            <em>Finish</em>. The server now runs automatically as a Windows service.</li>
+        </ol>
+
+        <figure>
+          <svg viewBox="0 0 900 250" role="img" aria-label="PostgreSQL installer password screen">
+            <rect x="0" y="0" width="900" height="250" fill="#1A2233"/>
+            <rect x="150" y="26" width="600" height="198" rx="10" fill="#F5F7FC" stroke="#C7D0E1"/>
+            <rect x="150" y="26" width="600" height="36" rx="10" fill="#3450CE"/>
+            <text x="172" y="50" font-family="sans-serif" font-weight="700" font-size="14" fill="#fff">Password</text>
+            <text x="176" y="90" font-family="sans-serif" font-size="13" fill="#46506A">Please provide a password for the database superuser (postgres).</text>
+            <text x="176" y="126" font-family="sans-serif" font-size="12.5" fill="#161B29">Password</text>
+            <rect x="176" y="134" width="440" height="32" rx="7" fill="#fff" stroke="#C7D0E1"/>
+            <text x="190" y="155" font-family="monospace" font-size="14" fill="#161B29">••••••••••</text>
+            <text x="176" y="188" font-family="sans-serif" font-size="12.5" fill="#161B29">Retype password</text>
+            <rect x="176" y="196" width="440" height="0.5" fill="none"/>
+            <rect x="640" y="128" width="200" height="80" rx="8" fill="#FBE9E6" stroke="#CE3D28"/>
+            <text x="740" y="158" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="#CE3D28">WRITE THIS DOWN</text>
+            <text x="740" y="178" text-anchor="middle" font-family="sans-serif" font-size="11" fill="#CE3D28">you'll pass it to</text>
+            <text x="740" y="193" text-anchor="middle" font-family="monospace" font-size="11" fill="#CE3D28">setup_env.py</text>
+          </svg>
+          <figcaption class="fig-cap"><b>FIG 02</b> PostgreSQL installer &mdash; set &amp; remember the <b>postgres</b> superuser password.</figcaption>
+        </figure>
+
+        <p><strong>Check it installed</strong> by opening pgAdmin from the Start menu (it will ask for that same
+        password), or from a new terminal:</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">PowerShell</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>psql --version</b>
+<span class="out">psql (PostgreSQL) 16.3</span></pre>
+        </div>
+        <div class="note"><span class="lab">Remember the difference</span>
+          <p><strong>PostgreSQL</strong> = the database engine that must be <em>running</em> (it auto-starts as a
+          service). <strong>pgAdmin</strong> = a window to look inside it. Our app talks to PostgreSQL; you use pgAdmin
+          only to watch the data appear.</p></div>
+
+        <!-- MySQL -->
+        <h3>1.5 &nbsp;MySQL + Workbench &nbsp;<span class="pill no">only for the MySQL database</span></h3>
+        <ol class="steps">
+          <li><strong>Download</strong> the <a href="https://dev.mysql.com/downloads/installer/">MySQL Installer for
+            Windows</a>. The smaller <em>“web-community”</em> installer is fine. (You can skip the “No thanks, just
+            start my download” login.)</li>
+          <li><strong>Run it</strong> and choose Setup Type <em>“Developer Default”</em> (this includes the
+            <em>Server</em> and <em>Workbench</em> together) → <em>Next</em> → <em>Execute</em> to download and install
+            the components. Approve any prompts.</li>
+          <li><strong>Configure the server:</strong> Type = <em>Standalone</em> → <em>Next</em>; keep
+            <em>Development Computer</em> and Port <span class="num">3306</span> → <em>Next</em>.</li>
+          <li><strong>Authentication:</strong> choose <em>“Use Strong Password Encryption (RECOMMENDED)”</em> →
+            <em>Next</em>.</li>
+          <li><strong>Set the ROOT password.</strong> Type it and <strong>write it down</strong> &mdash; you pass it to
+            <code class="inl">setup_mysql.py</code> later. → <em>Next</em>.</li>
+          <li><strong>Windows Service:</strong> keep the defaults (start MySQL at boot) → <em>Next</em> →
+            <em>Execute</em> → <em>Finish</em>, and complete the remaining screens with defaults.</li>
+        </ol>
+        <div class="note good"><span class="lab">No database to create</span>
+          <p>Do <em>not</em> make a database by hand. The app creates <code class="inl">gdb</code> for you on first
+          run. Open <strong>MySQL Workbench</strong> and connect as <code class="inl">root</code> to check it works.</p></div>
+
+        <!-- SQLite / InMemory -->
+        <h3>1.6 &nbsp;SQLite &amp; In-Memory &nbsp;<span class="pill ok">nothing to install</span></h3>
+        <p>SQLite is built into Python already. In-Memory uses your computer’s RAM. Both work out of the box &mdash;
+        skip straight to setup. (Optional: to <em>peek</em> at a SQLite file, install the free
+        <a href="https://sqlitebrowser.org/">DB Browser for SQLite</a>.)</p>
+
+        <!-- Supabase -->
+        <h3>1.7 &nbsp;Supabase &nbsp;<span class="pill cloud">free cloud account</span></h3>
+        <p>Supabase is PostgreSQL hosted on the internet &mdash; nothing to install, just an account.</p>
+        <ol class="steps">
+          <li><strong>Sign in.</strong> Go to <a href="https://supabase.com/">supabase.com</a>, click
+            <em>“Start your project”</em>, and sign in (GitHub or email).</li>
+          <li><strong>New project.</strong> Click <em>“New project”</em> and pick (or create) an Organization.</li>
+          <li><strong>Fill the form.</strong> Enter a project <em>Name</em>, set a <em>Database Password</em>
+            (<strong>write it down</strong>), and choose a <em>Region</em> near you (e.g. <em>Mumbai</em> or
+            <em>Singapore</em>).</li>
+          <li><strong>Create &amp; wait.</strong> Click <em>“Create new project”</em> and wait ~2 minutes while it
+            provisions.</li>
+          <li><strong>Grab the connection string</strong> in step 04: top bar <em>Connect → Session pooler</em> →
+            <em>Copy</em> (see FIG 04). You will paste your password into it there.</li>
+        </ol>
+      </section>
+
+      <!-- ============ 02 CODEBASE ============ -->
+      <section id="code">
+        <div class="sec-head">
+          <span class="sec-num">02</span>
+          <div><h2>Prepare the codebase (one time)</h2>
+          <p>This installs a private Python environment for each service and the frontend’s packages. You run it
+          <strong>once</strong>, no matter which database you later choose.</p></div>
+        </div>
+
+        <ol class="steps">
+          <li><strong>Open the project folder in a terminal.</strong>
+            Everything happens inside <code class="inl">gdb-service</code>.</li>
+          <li><strong>Run the setup script.</strong> It creates a <code class="inl">venv</code> for each of the 8
+            services and runs <code class="inl">npm install</code> for the frontend.</li>
+          <li><strong>Wait for it to finish.</strong> The first run downloads packages, so it can take a few minutes.</li>
+        </ol>
+
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">PowerShell — inside gdb-service</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>cd "C:\...\Trainer_PythonFullstack_GDB\gdb-service"</b>
+<span class="pmt">PS&gt;</span> <b>python Gdb.Setup</b>
+<span class="out">▶ auth_service      creating venv ... installing requirements ✅</span>
+<span class="out">▶ users_service     creating venv ... installing requirements ✅</span>
+<span class="out">▶ accounts_service  ... ✅   ▶ transactions_service ... ✅</span>
+<span class="out">▶ frontend          npm install ✅</span>
+<span class="out">🎉 All environments ready.</span></pre>
+        </div>
+
+        <div class="note good"><span class="lab">Smart &amp; repeatable</span>
+          <p>Safe to run again any time. If a venv already exists it only installs what is missing. Force a clean
+          rebuild with <code class="inl">python Gdb.Setup --force</code>.</p></div>
+      </section>
+
+      <!-- ============ 03 CHOOSE ============ -->
+      <section id="choose">
+        <div class="sec-head">
+          <span class="sec-num">03</span>
+          <div><h2>Choose which database to use</h2>
+          <p>All five run the exact same app. Pick one to start with &mdash; In-Memory or SQLite are the easiest.</p></div>
+        </div>
+
+        <div class="prov-grid">
+          <div class="prov">
+            <div class="pv-top"><h4>In-Memory</h4><span class="diff easy">EASIEST</span></div>
+            <p>Lives in RAM. Nothing to install, nothing saved &mdash; resets on restart. Great for a fast demo.</p>
+            <div class="pv-cmd">setup_provider.py inmemory</div>
+          </div>
+          <div class="prov">
+            <div class="pv-top"><h4>SQLite</h4><span class="diff easy">EASY</span></div>
+            <p>Saves to small <code class="inl">.db</code> files in each service. No server needed; data survives restarts.</p>
+            <div class="pv-cmd">setup_provider.py sqlite</div>
+          </div>
+          <div class="prov">
+            <div class="pv-top"><h4>PostgreSQL</h4><span class="diff mid">NEEDS SERVER</span></div>
+            <p>Real database you can inspect in pgAdmin. Each service gets its own <code class="inl">gdb_*_db</code>.</p>
+            <div class="pv-cmd">setup_env.py PW postgres</div>
+          </div>
+          <div class="prov">
+            <div class="pv-top"><h4>MySQL</h4><span class="diff mid">NEEDS SERVER</span></div>
+            <p>Real database viewable in MySQL Workbench. All services share the <code class="inl">gdb</code> database.</p>
+            <div class="pv-cmd">setup_mysql.py "mysql://…"</div>
+          </div>
+          <div class="prov">
+            <div class="pv-top"><h4>Supabase</h4><span class="diff mid">CLOUD</span></div>
+            <p>PostgreSQL on the internet. No local server; needs a free account and a connection string.</p>
+            <div class="pv-cmd">setup_supabase.py "postgresql://…"</div>
+          </div>
+        </div>
+
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Provider</th><th>Install needed</th><th>Data saved?</th><th>Server running?</th><th>See the data in</th></tr></thead>
+            <tbody>
+              <tr><td><strong>In-Memory</strong></td><td>None</td><td>No (resets)</td><td><span class="pill no">No</span></td><td>the app only</td></tr>
+              <tr><td><strong>SQLite</strong></td><td>None</td><td>Yes, in files</td><td><span class="pill no">No</span></td><td>DB Browser (optional)</td></tr>
+              <tr><td><strong>PostgreSQL</strong></td><td>Postgres + pgAdmin</td><td>Yes</td><td><span class="pill ok">Yes</span></td><td>pgAdmin</td></tr>
+              <tr><td><strong>MySQL</strong></td><td>MySQL + Workbench</td><td>Yes</td><td><span class="pill ok">Yes</span></td><td>MySQL Workbench</td></tr>
+              <tr><td><strong>Supabase</strong></td><td>Free account</td><td>Yes (cloud)</td><td><span class="pill cloud">Cloud</span></td><td>Supabase Table Editor</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ 04 SETUP EACH DB ============ -->
+      <section id="setup">
+        <div class="sec-head">
+          <span class="sec-num">04</span>
+          <div><h2>Set up your chosen database</h2>
+          <p>Run <strong>one</strong> of the following. Each writes the correct <code class="inl">.env</code> settings
+          into the four data services for you. You never edit files by hand.</p></div>
+        </div>
+
+        <h3>4.A &nbsp;In-Memory</h3>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">no server needed</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.Setup inmemory</b>
+<span class="out">🗃️  GDB → INMEMORY (no server needed)</span>
+<span class="out">✅ users · auth · accounts · transactions → inmemory</span></pre>
+        </div>
+
+        <h3>4.B &nbsp;SQLite</h3>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">no server needed</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.Setup sqlite</b>
+<span class="out">🗃️  GDB → SQLITE (no server needed)</span>
+<span class="out">✅ Each service creates its own file: gdb_users.db, gdb_accounts.db, …</span></pre>
+        </div>
+        <div class="note"><span class="lab">Where the files appear</span>
+          <p>After you run the app, look for <code class="inl">gdb_accounts.db</code> inside
+          <code class="inl">accounts_service/</code>, and similar files in the other three data services.</p></div>
+
+        <h3>4.C &nbsp;PostgreSQL (pgAdmin)</h3>
+        <p>First make sure the PostgreSQL <strong>server is running</strong> (it starts with Windows by default). Then
+        pass your postgres password &mdash; the second word is the username, which is <code class="inl">postgres</code>:</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">local PostgreSQL server must be running</span></div>
+          <pre><span class="cmt"># format:  dotnet run --project tools/Gdb.Setup &lt;password&gt; &lt;username&gt;</span>
+<span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.Setup MyPgPass123 postgres</b>
+<span class="out">✅ users · auth · accounts · transactions → postgres @ localhost:5432</span></pre>
+        </div>
+        <p>Each data service will auto-create its own database. After you start the app, open pgAdmin and refresh:</p>
+
+        <figure>
+          <svg viewBox="0 0 900 320" role="img" aria-label="pgAdmin database tree showing four gdb databases">
+            <rect x="0" y="0" width="900" height="320" fill="var(--surface-2)"/>
+            <rect x="20" y="20" width="860" height="280" rx="10" fill="#F5F7FC" stroke="#C7D0E1"/>
+            <rect x="20" y="20" width="300" height="280" rx="10" fill="#FFFFFF" stroke="#E2E7F1"/>
+            <text x="40" y="50" font-family="sans-serif" font-weight="700" font-size="14" fill="#161B29">Object Explorer</text>
+            <g font-family="monospace" font-size="13.5" fill="#46506A">
+              <text x="40" y="82">▾ 🖥  PostgreSQL 16</text>
+              <text x="62" y="108">▾ 🗄  Databases</text>
+              <text x="86" y="134" fill="#2138A6" font-weight="700">🛢 gdb_accounts_db</text>
+              <text x="86" y="160" fill="#2138A6" font-weight="700">🛢 gdb_auth_db</text>
+              <text x="86" y="186" fill="#2138A6" font-weight="700">🛢 gdb_transactions_db</text>
+              <text x="86" y="212" fill="#2138A6" font-weight="700">🛢 gdb_users_db</text>
+              <text x="86" y="238" fill="#7B849B">🛢 postgres</text>
+            </g>
+            <path d="M300,134 C360,134 360,120 400,120" stroke="#0C9A69" stroke-width="2.5" fill="none" marker-end="url(#gg)"/>
+            <defs><marker id="gg" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#0C9A69"/></marker></defs>
+            <rect x="400" y="96" width="440" height="150" rx="8" fill="#0D1426"/>
+            <text x="420" y="122" font-family="monospace" font-size="12.5" fill="#61C554">-- Query Tool on gdb_accounts_db</text>
+            <text x="420" y="150" font-family="monospace" font-size="12.5" fill="#D8E1F5">SELECT account_number, name, balance</text>
+            <text x="420" y="170" font-family="monospace" font-size="12.5" fill="#D8E1F5">FROM accounts;</text>
+            <line x1="420" y1="184" x2="820" y2="184" stroke="#33405F"/>
+            <text x="420" y="206" font-family="monospace" font-size="12" fill="#8fa0c9">1000 | John Doe     | 50000.00</text>
+            <text x="420" y="226" font-family="monospace" font-size="12" fill="#8fa0c9">1001 | System Admin |     0.00</text>
+          </svg>
+          <figcaption class="fig-cap"><b>FIG 03</b> pgAdmin → Databases → Refresh shows the four auto-created <b>gdb_*_db</b> databases.</figcaption>
+        </figure>
+
+        <h3>4.D &nbsp;MySQL (Workbench)</h3>
+        <p>Make sure the MySQL <strong>server is running</strong>, then pass one connection string with your root
+        password (leave the database as <code class="inl">gdb</code> &mdash; it is created for you):</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">local MySQL server must be running</span></div>
+          <pre><span class="cmt"># format:  mysql://&lt;user&gt;:&lt;password&gt;@&lt;host&gt;:&lt;port&gt;/&lt;database&gt;</span>
+<span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.Setup "mysql://root:MyRootPass@localhost:3306/gdb"</b>
+<span class="out">✅ users · auth · accounts · transactions → mysql @ localhost:3306/gdb</span></pre>
+        </div>
+        <div class="note warn"><span class="lab">Quotes matter</span>
+          <p>Wrap the connection string in <strong>double quotes</strong> so PowerShell keeps it as one piece. In
+          Workbench you will find all tables inside the single <code class="inl">gdb</code> schema.</p></div>
+
+        <h3>4.E &nbsp;Supabase (cloud)</h3>
+        <p>In your Supabase project open <strong>Connect</strong> (top bar) and copy the
+        <strong>Session pooler</strong> URI (it ends in <code class="inl">:5432/postgres</code>). Paste your database
+        password into it where it says <code class="inl">[YOUR-PASSWORD]</code>, then:</p>
+
+        <figure>
+          <svg viewBox="0 0 900 250" role="img" aria-label="Supabase connect dialog with a connection string to copy">
+            <rect x="0" y="0" width="900" height="250" fill="var(--surface-2)"/>
+            <rect x="60" y="24" width="780" height="202" rx="12" fill="#F5F7FC" stroke="#C7D0E1"/>
+            <text x="84" y="58" font-family="sans-serif" font-weight="800" font-size="16" fill="#161B29">Connect to your project</text>
+            <rect x="84" y="76" width="150" height="30" rx="8" fill="#EBEFFC" stroke="#3450CE"/>
+            <text x="159" y="96" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#2138A6">Session pooler</text>
+            <text x="252" y="96" font-family="sans-serif" font-size="12.5" fill="#7B849B">Transaction pooler</text>
+            <text x="400" y="96" font-family="sans-serif" font-size="12.5" fill="#7B849B">Direct</text>
+            <rect x="84" y="122" width="732" height="42" rx="8" fill="#0D1426"/>
+            <text x="100" y="148" font-family="monospace" font-size="12.5" fill="#D8E1F5">postgresql://postgres.abcd:[YOUR-PASSWORD]@aws-0-ap-south-1.pooler.supabase.com:5432/postgres</text>
+            <rect x="740" y="178" width="76" height="30" rx="7" fill="#0C9A69"/>
+            <text x="778" y="198" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#fff">Copy</text>
+            <text x="84" y="198" font-family="sans-serif" font-size="12" fill="#B26A08">▲ use port 5432 (Session), replace [YOUR-PASSWORD]</text>
+          </svg>
+          <figcaption class="fig-cap"><b>FIG 04</b> Supabase → Connect → Session pooler. Copy the URI and swap in your password.</figcaption>
+        </figure>
+
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">needs internet</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>python setup_supabase.py "postgresql://postgres.abcd:MyDbPass@aws-0-ap-south-1.pooler.supabase.com:5432/postgres"</b>
+<span class="out">✅ users · auth · accounts · transactions → supabase (SSL)</span></pre>
+        </div>
+        <div class="note warn"><span class="lab">Use the Session pooler (port 5432)</span>
+          <p>The <strong>Transaction</strong> pooler (port 6543) does not work with our driver. If login is slow the
+          first time, that is just the cloud waking up.</p></div>
+      </section>
+
+      <!-- ============ 05 RUN ============ -->
+      <section id="run">
+        <div class="sec-head">
+          <span class="sec-num">05</span>
+          <div><h2>Run all the servers</h2>
+          <p>One command starts all 8 backends and the frontend, each in its own titled window.</p></div>
+        </div>
+
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">PowerShell — inside gdb-service</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.Runner</b>
+<span class="out">🚀 GDB — Starting all services</span>
+<span class="out">▶️  [auth_service]         http://localhost:8004</span>
+<span class="out">▶️  [users_service]        http://localhost:8003</span>
+<span class="out">▶️  [accounts_service]     http://localhost:8001</span>
+<span class="out">▶️  [transactions_service] http://localhost:8002</span>
+<span class="out">▶️  [aadhar/company/notification/payment]  8005–8008</span>
+<span class="out">▶️  [frontend] npm run dev  →  http://localhost:3000</span></pre>
+        </div>
+
+        <p>Nine windows open. A window that stays open showing an error means <em>that</em> service failed &mdash;
+        the title tells you which one, and you can read the message (usually a wrong DB password or a port already in
+        use). Each backend window should end with <code class="inl">Application startup complete</code>.</p>
+
+        <figure>
+          <svg viewBox="0 0 900 340" role="img" aria-label="Nine console windows, one per service, all showing startup complete">
+            <rect x="0" y="0" width="900" height="340" fill="var(--surface-2)"/>
+            <g font-family="monospace">
+              <!-- 8 backend windows -->
+              <!-- row 1 -->
+              <g>
+                <rect x="24" y="20" width="200" height="86" rx="8" fill="#0D1426"/>
+                <rect x="24" y="20" width="200" height="20" rx="8" fill="#33405F"/>
+                <text x="34" y="34" font-size="10.5" fill="#D8E1F5">auth_service:8004</text>
+                <text x="34" y="60" font-size="10" fill="#61C554">✔ Database initialized</text>
+                <text x="34" y="78" font-size="10" fill="#8fa0c9">Application startup</text>
+                <text x="34" y="94" font-size="10" fill="#8fa0c9">dotnet run on :8004</text>
+              </g>
+              <g>
+                <rect x="240" y="20" width="200" height="86" rx="8" fill="#0D1426"/>
+                <rect x="240" y="20" width="200" height="20" rx="8" fill="#33405F"/>
+                <text x="250" y="34" font-size="10.5" fill="#D8E1F5">users_service:8003</text>
+                <text x="250" y="60" font-size="10" fill="#61C554">✔ Database initialized</text>
+                <text x="250" y="78" font-size="10" fill="#8fa0c9">Application startup</text>
+                <text x="250" y="94" font-size="10" fill="#8fa0c9">dotnet run on :8003</text>
+              </g>
+              <g>
+                <rect x="456" y="20" width="200" height="86" rx="8" fill="#0D1426"/>
+                <rect x="456" y="20" width="200" height="20" rx="8" fill="#33405F"/>
+                <text x="466" y="34" font-size="10.5" fill="#D8E1F5">accounts_service:8001</text>
+                <text x="466" y="60" font-size="10" fill="#61C554">🌱 Seeded 2 accounts</text>
+                <text x="466" y="78" font-size="10" fill="#8fa0c9">Application startup</text>
+                <text x="466" y="94" font-size="10" fill="#8fa0c9">dotnet run on :8001</text>
+              </g>
+              <g>
+                <rect x="672" y="20" width="200" height="86" rx="8" fill="#0D1426"/>
+                <rect x="672" y="20" width="200" height="20" rx="8" fill="#33405F"/>
+                <text x="682" y="34" font-size="10.5" fill="#D8E1F5">transactions:8002</text>
+                <text x="682" y="60" font-size="10" fill="#61C554">🌱 Seeded limits</text>
+                <text x="682" y="78" font-size="10" fill="#8fa0c9">Application startup</text>
+                <text x="682" y="94" font-size="10" fill="#8fa0c9">dotnet run on :8002</text>
+              </g>
+              <!-- row 2 mocks -->
+              <g fill="#0D1426">
+                <rect x="24" y="118" width="200" height="70" rx="8"/><rect x="240" y="118" width="200" height="70" rx="8"/>
+                <rect x="456" y="118" width="200" height="70" rx="8"/><rect x="672" y="118" width="200" height="70" rx="8"/>
+              </g>
+              <g fill="#33405F"><rect x="24" y="118" width="200" height="18" rx="8"/><rect x="240" y="118" width="200" height="18" rx="8"/><rect x="456" y="118" width="200" height="18" rx="8"/><rect x="672" y="118" width="200" height="18" rx="8"/></g>
+              <text x="34" y="131" font-size="10" fill="#D8E1F5">aadhar:8005</text><text x="34" y="165" font-size="10" fill="#8fa0c9">startup complete</text>
+              <text x="250" y="131" font-size="10" fill="#D8E1F5">company:8006</text><text x="250" y="165" font-size="10" fill="#8fa0c9">startup complete</text>
+              <text x="466" y="131" font-size="10" fill="#D8E1F5">notification:8007</text><text x="466" y="165" font-size="10" fill="#8fa0c9">startup complete</text>
+              <text x="682" y="131" font-size="10" fill="#D8E1F5">payment:8008</text><text x="682" y="165" font-size="10" fill="#8fa0c9">startup complete</text>
+              <!-- frontend wide -->
+              <rect x="24" y="200" width="848" height="118" rx="8" fill="#0D1426"/>
+              <rect x="24" y="200" width="848" height="20" rx="8" fill="#0C9A69"/>
+              <text x="34" y="214" font-size="11" fill="#fff">frontend — npm run dev</text>
+              <text x="44" y="248" font-size="12" fill="#61C554">VITE ready in 620 ms</text>
+              <text x="44" y="272" font-size="12" fill="#D8E1F5">➜  Local:   http://localhost:3000/</text>
+              <text x="44" y="296" font-size="12" fill="#8fa0c9">➜  press h + enter to show help</text>
+            </g>
+          </svg>
+          <figcaption class="fig-cap"><b>FIG 05</b> All nine windows after a healthy start. Open the frontend URL in your browser.</figcaption>
+        </figure>
+
+        <p>Open <strong>http://localhost:3000</strong> (Vite may use <code class="inl">:5173</code> &mdash; use whatever
+        it prints) and log in:</p>
+
+        <figure>
+          <svg viewBox="0 0 900 300" role="img" aria-label="GDB login screen with username admin and password">
+            <rect x="0" y="0" width="900" height="300" fill="#EBEFFC"/>
+            <rect x="300" y="34" width="300" height="232" rx="16" fill="#FFFFFF" stroke="#C7D0E1"/>
+            <circle cx="450" cy="80" r="22" fill="#3450CE"/>
+            <text x="450" y="87" text-anchor="middle" font-size="20" fill="#fff">🏦</text>
+            <text x="450" y="122" text-anchor="middle" font-family="sans-serif" font-weight="800" font-size="17" fill="#161B29">Global Digital Bank</text>
+            <text x="330" y="150" font-family="sans-serif" font-size="11.5" fill="#7B849B">Username</text>
+            <rect x="330" y="156" width="240" height="34" rx="8" fill="#F5F7FC" stroke="#C7D0E1"/>
+            <text x="344" y="178" font-family="monospace" font-size="13" fill="#161B29">admin</text>
+            <text x="330" y="206" font-family="sans-serif" font-size="11.5" fill="#7B849B">Password</text>
+            <rect x="330" y="212" width="240" height="34" rx="8" fill="#F5F7FC" stroke="#C7D0E1"/>
+            <text x="344" y="234" font-family="monospace" font-size="13" fill="#161B29">Welcome@1</text>
+            <path d="M600,229 C660,229 660,229 700,229" stroke="#0C9A69" stroke-width="2.5" fill="none" marker-end="url(#lg)"/>
+            <defs><marker id="lg" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 Z" fill="#0C9A69"/></marker></defs>
+            <rect x="700" y="210" width="150" height="40" rx="8" fill="#E4F5EE" stroke="#0C9A69"/>
+            <text x="775" y="235" text-anchor="middle" font-family="sans-serif" font-size="12.5" font-weight="700" fill="#0C9A69">admin / Welcome@1</text>
+          </svg>
+          <figcaption class="fig-cap"><b>FIG 06</b> The login page. Username <b>admin</b>, password <b>Welcome@1</b>.</figcaption>
+        </figure>
+
+        <div class="note"><span class="lab">Auto-reload while editing</span>
+          <p>Add <code class="inl">--reload</code> (<code class="inl">dotnet run --project tools/Gdb.Runner --reload</code>) so services
+          restart when you change code. It uses more memory; skip it for a plain demo.</p></div>
+      </section>
+
+      <!-- ============ 06 USE ============ -->
+      <section id="use">
+        <div class="sec-head">
+          <span class="sec-num">06</span>
+          <div><h2>Use it &amp; prove it works</h2>
+          <p>A quick tour that exercises every data service, so you know the database is really wired up.</p></div>
+        </div>
+        <ol class="steps">
+          <li><strong>See the seed accounts.</strong> The Accounts page already lists two accounts (1000 &amp; 1001)
+            created automatically on first start.</li>
+          <li><strong>Create a savings account.</strong> Use demo Aadhar <code class="inl">123456789012</code> →
+            <em>Verify</em> → <em>Continue</em> → PIN <code class="inl">1234</code> → <em>Create</em>. You should get a
+            new account number.</li>
+          <li><strong>Transfer money.</strong> Move funds between two accounts. A success here proves the transactions
+            service and its database are healthy.</li>
+          <li><strong>(Real DBs) look inside.</strong> In pgAdmin / Workbench / Supabase, run
+            <code class="inl">SELECT * FROM accounts;</code> and watch your new row appear.</li>
+        </ol>
+        <div class="note good"><span class="lab">Swagger API docs</span>
+          <p>Every backend has interactive docs at <code class="inl">http://localhost:&lt;port&gt;/api/v1/docs</code>
+          &mdash; e.g. accounts at <code class="inl">:8001/api/v1/docs</code>. Handy for showing the API directly.</p></div>
+      </section>
+
+      <!-- ============ 07 SWITCH ============ -->
+      <section id="switch">
+        <div class="sec-head">
+          <span class="sec-num">07</span>
+          <div><h2>Switching from one database to another</h2>
+          <p>The golden rule: <strong>stop everything first</strong>, then re-point, then start again.</p></div>
+        </div>
+        <ol class="steps">
+          <li><strong>Close all the windows</strong> (or free the ports) so nothing is holding 8001–8008.</li>
+          <li><strong>Run the setup command</strong> for the new database (section 04).</li>
+          <li><strong>Start again</strong> with <code class="inl">dotnet run --project tools/Gdb.Runner</code>.</li>
+        </ol>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">stop → switch → start</span></div>
+          <pre><span class="cmt"># 1) stop everything (frees the ports)</span>
+<span class="pmt">PS&gt;</span> <b>taskkill /F /IM python.exe 2&gt;$null ; taskkill /F /IM node.exe 2&gt;$null</b>
+<span class="cmt"># 2) pick a new database, e.g. SQLite</span>
+<span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.Setup sqlite</b>
+<span class="cmt"># 3) start again</span>
+<span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.Runner</b></pre>
+        </div>
+        <div class="note warn"><span class="lab">Data does not follow you</span>
+          <p>Each database is its own separate store. Accounts made on MySQL will <em>not</em> appear on SQLite &mdash;
+          every provider starts fresh with the two seed accounts. That is expected, not a bug.</p></div>
+      </section>
+
+      <!-- ============ 08 TROUBLE ============ -->
+      <section id="trouble">
+        <div class="sec-head">
+          <span class="sec-num">08</span>
+          <div><h2>Troubleshooting</h2>
+          <p>The window that stays open <em>is</em> the clue &mdash; its title names the failing service and its text
+          names the cause. The most common ones:</p></div>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Message you see</th><th>What it means</th><th>Fix</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">'python' is not recognized</td><td>Python not on PATH</td><td>Re-run installer, tick “Add to PATH”, open a new terminal</td></tr>
+              <tr><td class="mono">Missing venv for: …</td><td>Setup not run</td><td>Run <code class="inl">python Gdb.Setup</code></td></tr>
+              <tr><td class="mono">address already in use</td><td>Old process still holds the port</td><td><code class="inl">taskkill /F /IM python.exe</code>, then start again</td></tr>
+              <tr><td class="mono">password authentication failed</td><td>Wrong DB password</td><td>Re-run the section-04 command with the correct password</td></tr>
+              <tr><td class="mono">could not connect / refused</td><td>DB server not running</td><td>Start the PostgreSQL/MySQL service; check the port</td></tr>
+              <tr><td class="mono">422 on create account</td><td>Form data failed a rule</td><td>Aadhar 12 digits, phone 10 digits, PIN 4 digits; check DevTools → Network → Response</td></tr>
+              <tr><td class="mono">frontend blank / can’t reach API</td><td>A backend window failed</td><td>Find the errored window, fix its cause, restart</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- ============ 09 CHEAT ============ -->
+      <section id="cheat">
+        <div class="sec-head">
+          <span class="sec-num">09</span>
+          <div><h2>Quick reference card</h2>
+          <p>Everything you need on one screen. Print it or keep it open beside the terminal.</p></div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin-top:0">Set up a database (pick one)</h4>
+          <div class="tbl-scroll">
+            <table>
+              <thead><tr><th>Database</th><th class="mono">Command</th></tr></thead>
+              <tbody>
+                <tr><td>In-Memory</td><td class="mono">dotnet run --project tools/Gdb.Setup inmemory</td></tr>
+                <tr><td>SQLite</td><td class="mono">dotnet run --project tools/Gdb.Setup sqlite</td></tr>
+                <tr><td>PostgreSQL</td><td class="mono">dotnet run --project tools/Gdb.Setup &lt;password&gt; postgres</td></tr>
+                <tr><td>MySQL</td><td class="mono">dotnet run --project tools/Gdb.Setup "mysql://root:&lt;pw&gt;@localhost:3306/gdb"</td></tr>
+                <tr><td>Supabase</td><td class="mono">python setup_supabase.py "postgresql://…pooler…:5432/postgres"</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin-top:0">The three everyday commands</h4>
+          <div class="tbl-scroll">
+            <table>
+              <tbody>
+                <tr><td>Prepare code (once)</td><td class="mono">python Gdb.Setup</td></tr>
+                <tr><td>Start everything</td><td class="mono">dotnet run --project tools/Gdb.Runner</td></tr>
+                <tr><td>Stop everything</td><td class="mono">taskkill /F /IM python.exe ; taskkill /F /IM node.exe</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="card">
+          <h4 style="margin-top:0">Ports &amp; login</h4>
+          <div class="tbl-scroll">
+            <table>
+              <thead><tr><th>Service</th><th class="mono">Port</th><th>Service</th><th class="mono">Port</th></tr></thead>
+              <tbody>
+                <tr><td>accounts</td><td class="mono">8001</td><td>aadhar (mock)</td><td class="mono">8005</td></tr>
+                <tr><td>transactions</td><td class="mono">8002</td><td>company (mock)</td><td class="mono">8006</td></tr>
+                <tr><td>users</td><td class="mono">8003</td><td>notification (mock)</td><td class="mono">8007</td></tr>
+                <tr><td>auth</td><td class="mono">8004</td><td>payment gw (mock)</td><td class="mono">8008</td></tr>
+                <tr><td><strong>frontend</strong></td><td class="mono">3000</td><td>Swagger docs</td><td class="mono">/api/v1/docs</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="margin-bottom:0"><strong>Login:</strong> <code class="inl">admin</code> /
+          <code class="inl">Welcome@1</code> &nbsp;·&nbsp; <strong>Demo Aadhar:</strong>
+          <code class="inl">123456789012</code> &nbsp;·&nbsp; <strong>Demo PIN:</strong>
+          <code class="inl">1234</code></p>
+        </div>
+      </section>
+
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>Global Digital Bank &mdash; Student Setup Handbook</span>
+    <span>Same code · five databases · one command to run</span>
+  </div>
+</footer>
+
+

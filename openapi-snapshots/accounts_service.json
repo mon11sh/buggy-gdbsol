@@ -1,0 +1,1815 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "GDB Accounts Service API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/v1/accounts/savings": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavingsAccountCreate"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavingsAccountCreate"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/SavingsAccountCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/current": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CurrentAccountCreate"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CurrentAccountCreate"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CurrentAccountCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "account_type",
+            "in": "query",
+            "schema": {
+              "title": "String",
+              "type": "string"
+            }
+          },
+          {
+            "name": "skip",
+            "in": "query",
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "title": "Nullable\u00601",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "title": "List\u00601",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccountResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "title": "List\u00601",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccountResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "title": "List\u00601",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccountResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/search": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "schema": {
+              "title": "String",
+              "type": "string"
+            }
+          },
+          {
+            "name": "privilege",
+            "in": "query",
+            "schema": {
+              "title": "String",
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "title": "Nullable\u00601",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "title": "List\u00601",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccountResponse"
+                  }
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "title": "List\u00601",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccountResponse"
+                  }
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "title": "List\u00601",
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AccountResponse"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/summary": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSummaryResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSummaryResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountSummaryResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{account_number}": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountUpdate"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountUpdate"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/AccountUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{account_number}/balance": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BalanceResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{account_number}/activate": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{account_number}/inactivate": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{account_number}/close": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccountActionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/accounts/{account_number}/verify-pin": {
+      "post": {
+        "tags": [
+          "Account"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinVerifyRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinVerifyRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/PinVerifyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/PinVerifyResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PinVerifyResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PinVerifyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/internal/accounts/{account_number}": {
+      "get": {
+        "tags": [
+          "InternalAccount"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalAccountDetailsResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalAccountDetailsResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalAccountDetailsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/internal/accounts/{account_number}/privilege": {
+      "get": {
+        "tags": [
+          "InternalAccount"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalPrivilegeResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalPrivilegeResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalPrivilegeResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/internal/accounts/{account_number}/active": {
+      "get": {
+        "tags": [
+          "InternalAccount"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalActiveResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalActiveResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalActiveResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/internal/accounts/{account_number}/verify-pin": {
+      "post": {
+        "tags": [
+          "InternalAccount"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinVerifyRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PinVerifyRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/PinVerifyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalPinVerifyResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalPinVerifyResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalPinVerifyResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/internal/accounts/{account_number}/debit": {
+      "post": {
+        "tags": [
+          "InternalAccount"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DebitRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DebitRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/DebitRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalTransactionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalTransactionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalTransactionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/internal/accounts/{account_number}/credit": {
+      "post": {
+        "tags": [
+          "InternalAccount"
+        ],
+        "parameters": [
+          {
+            "name": "account_number",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreditRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreditRequest"
+              }
+            },
+            "application/*\u002Bjson": {
+              "schema": {
+                "$ref": "#/components/schemas/CreditRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "text/plain": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalTransactionResponse"
+                }
+              },
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalTransactionResponse"
+                }
+              },
+              "text/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/InternalTransactionResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountActionResponse": {
+        "title": "AccountActionResponse",
+        "type": "object",
+        "properties": {
+          "success": {
+            "title": "Boolean",
+            "type": "boolean"
+          },
+          "message": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "account_number": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AccountResponse": {
+        "title": "AccountResponse",
+        "required": [
+          "bank_branch",
+          "bank_name",
+          "ifsc_code",
+          "name",
+          "privilege"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "String",
+            "maxLength": 255,
+            "minLength": 2,
+            "type": "string"
+          },
+          "privilege": {
+            "title": "String",
+            "minLength": 1,
+            "pattern": "^(SILVER|GOLD|PREMIUM)$",
+            "type": "string"
+          },
+          "bank_name": {
+            "title": "String",
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "bank_branch": {
+            "title": "String",
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "ifsc_code": {
+            "title": "String",
+            "minLength": 1,
+            "pattern": "^[A-Z0-9]{10,11}$",
+            "type": "string"
+          },
+          "account_number": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "account_type": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "balance": {
+            "title": "Decimal",
+            "type": "number",
+            "format": "double"
+          },
+          "is_active": {
+            "title": "Boolean",
+            "type": "boolean"
+          },
+          "activated_date": {
+            "title": "DateTime",
+            "type": "string",
+            "format": "date-time"
+          },
+          "closed_date": {
+            "title": "Nullable\u00601",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "date-time"
+          },
+          "minimum_balance": {
+            "title": "Decimal",
+            "type": "number",
+            "format": "double"
+          },
+          "monthly_maintenance_fee": {
+            "title": "Decimal",
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "AccountSummaryResponse": {
+        "title": "AccountSummaryResponse",
+        "type": "object",
+        "properties": {
+          "total_accounts": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "total_balance": {
+            "title": "Decimal",
+            "type": "number",
+            "format": "double"
+          },
+          "active_accounts": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "by_type": {
+            "title": "Dictionary\u00602",
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "additionalProperties": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "by_privilege": {
+            "title": "Dictionary\u00602",
+            "anyOf": [
+              {
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "additionalProperties": {
+              "title": "Int32",
+              "type": "integer",
+              "format": "int32"
+            }
+          },
+          "recent_accounts": {
+            "title": "List\u00601",
+            "anyOf": [
+              {
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "items": {
+              "$ref": "#/components/schemas/RecentAccountDto"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "AccountUpdate": {
+        "title": "AccountUpdate",
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "String",
+            "maxLength": 255,
+            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "privilege": {
+            "title": "String",
+            "pattern": "^(SILVER|GOLD|PREMIUM)$",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "phone_no": {
+            "title": "String",
+            "maxLength": 20,
+            "minLength": 10,
+            "pattern": "^\\d\u002B$",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "company_name": {
+            "title": "String",
+            "maxLength": 255,
+            "minLength": 1,
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "website": {
+            "title": "String",
+            "maxLength": 255,
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "BalanceResponse": {
+        "title": "BalanceResponse",
+        "type": "object",
+        "properties": {
+          "account_number": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "balance": {
+            "title": "Decimal",
+            "type": "number",
+            "format": "double"
+          },
+          "currency": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreditRequest": {
+        "title": "CreditRequest",
+        "type": "object",
+        "properties": {
+          "amount": {
+            "title": "Decimal",
+            "minimum": 0.01,
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "idempotency_key": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "CurrentAccountCreate": {
+        "title": "CurrentAccountCreate",
+        "required": [
+          "bank_branch",
+          "bank_name",
+          "company_name",
+          "ifsc_code",
+          "name",
+          "pin",
+          "privilege",
+          "registration_no"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "String",
+            "maxLength": 255,
+            "minLength": 2,
+            "type": "string"
+          },
+          "privilege": {
+            "title": "String",
+            "minLength": 1,
+            "pattern": "^(SILVER|GOLD|PREMIUM)$",
+            "type": "string"
+          },
+          "bank_name": {
+            "title": "String",
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "bank_branch": {
+            "title": "String",
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "ifsc_code": {
+            "title": "String",
+            "minLength": 1,
+            "pattern": "^[A-Z0-9]{10,11}$",
+            "type": "string"
+          },
+          "pin": {
+            "title": "String",
+            "maxLength": 6,
+            "minLength": 4,
+            "type": "string"
+          },
+          "company_name": {
+            "title": "String",
+            "maxLength": 255,
+            "minLength": 1,
+            "type": "string"
+          },
+          "registration_no": {
+            "title": "String",
+            "maxLength": 50,
+            "minLength": 1,
+            "type": "string"
+          },
+          "account_type": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "website": {
+            "title": "String",
+            "maxLength": 255,
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "DebitRequest": {
+        "title": "DebitRequest",
+        "type": "object",
+        "properties": {
+          "amount": {
+            "title": "Decimal",
+            "minimum": 0.01,
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "idempotency_key": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "InternalAccountDetailsResponse": {
+        "title": "InternalAccountDetailsResponse",
+        "type": "object",
+        "properties": {
+          "account_number": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "account_type": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "name": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "balance": {
+            "title": "Decimal",
+            "type": "number",
+            "format": "double"
+          },
+          "privilege": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "is_active": {
+            "title": "Boolean",
+            "type": "boolean"
+          },
+          "activated_date": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "closed_date": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "InternalActiveResponse": {
+        "title": "InternalActiveResponse",
+        "type": "object",
+        "properties": {
+          "account_number": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "is_active": {
+            "title": "Boolean",
+            "type": "boolean"
+          },
+          "status": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "InternalPinVerifyResponse": {
+        "title": "InternalPinVerifyResponse",
+        "type": "object",
+        "properties": {
+          "account_number": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "pin_valid": {
+            "title": "Boolean",
+            "type": "boolean"
+          },
+          "status": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "InternalPrivilegeResponse": {
+        "title": "InternalPrivilegeResponse",
+        "type": "object",
+        "properties": {
+          "account_number": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "privilege": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "InternalTransactionResponse": {
+        "title": "InternalTransactionResponse",
+        "type": "object",
+        "properties": {
+          "success": {
+            "title": "Boolean",
+            "type": "boolean"
+          },
+          "account_number": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "amount_debited": {
+            "title": "Nullable\u00601",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "double"
+          },
+          "amount_credited": {
+            "title": "Nullable\u00601",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "double"
+          },
+          "new_balance": {
+            "title": "Nullable\u00601",
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "format": "double"
+          },
+          "status": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_code": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error_message": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "PinVerifyRequest": {
+        "title": "PinVerifyRequest",
+        "required": [
+          "pin"
+        ],
+        "type": "object",
+        "properties": {
+          "pin": {
+            "title": "String",
+            "maxLength": 6,
+            "minLength": 4,
+            "type": "string"
+          }
+        },
+        "additionalProperties": false
+      },
+      "PinVerifyResponse": {
+        "title": "PinVerifyResponse",
+        "type": "object",
+        "properties": {
+          "valid": {
+            "title": "Boolean",
+            "type": "boolean"
+          },
+          "message": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "RecentAccountDto": {
+        "title": "RecentAccountDto",
+        "type": "object",
+        "properties": {
+          "AccountNumber": {
+            "title": "Int32",
+            "type": "integer",
+            "format": "int32"
+          },
+          "Name": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "AccountType": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "SavingsAccountCreate": {
+        "title": "SavingsAccountCreate",
+        "required": [
+          "aadhar_number",
+          "bank_branch",
+          "bank_name",
+          "date_of_birth",
+          "gender",
+          "ifsc_code",
+          "name",
+          "phone_no",
+          "pin",
+          "privilege"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "String",
+            "maxLength": 255,
+            "minLength": 2,
+            "type": "string"
+          },
+          "privilege": {
+            "title": "String",
+            "minLength": 1,
+            "pattern": "^(SILVER|GOLD|PREMIUM)$",
+            "type": "string"
+          },
+          "bank_name": {
+            "title": "String",
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "bank_branch": {
+            "title": "String",
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string"
+          },
+          "ifsc_code": {
+            "title": "String",
+            "minLength": 1,
+            "pattern": "^[A-Z0-9]{10,11}$",
+            "type": "string"
+          },
+          "pin": {
+            "title": "String",
+            "maxLength": 6,
+            "minLength": 4,
+            "type": "string"
+          },
+          "date_of_birth": {
+            "title": "String",
+            "minLength": 1,
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string"
+          },
+          "gender": {
+            "title": "String",
+            "minLength": 1,
+            "type": "string"
+          },
+          "phone_no": {
+            "title": "String",
+            "maxLength": 10,
+            "minLength": 10,
+            "pattern": "^\\d\u002B$",
+            "type": "string"
+          },
+          "aadhar_number": {
+            "title": "String",
+            "maxLength": 12,
+            "minLength": 12,
+            "pattern": "^\\d\u002B$",
+            "type": "string"
+          },
+          "account_type": {
+            "title": "String",
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "initial_balance": {
+            "title": "Decimal",
+            "maximum": 10000000,
+            "minimum": 2000,
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "Bearer": {
+        "type": "http",
+        "description": "JWT Authorization header using the Bearer scheme. Example: \u0022Authorization: Bearer {token}\u0022",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  },
+  "security": [
+    {
+      "Bearer": []
+    }
+  ]
+}

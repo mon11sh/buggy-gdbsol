@@ -1,0 +1,166 @@
+# =============================================================================
+# GDB (.NET) — base Docker stack (8 backends + API gateway + registry + web).
+# NO external database here.
+#
+# By itself this runs the IN-MEMORY provider (zero setup, data resets on stop):
+#     docker compose up --build
+#
+# Entry points once up:
+#   • http://localhost:3000        web app (admin / Welcome@1)
+#   • http://localhost:8000/api/v1/…  API gateway (single entry, path-routed)
+#   • http://localhost:8010        service registry (discovery)
+#   • http://localhost:8001..8008  backends directly (published for dev)
+#
+# To use a real database, layer a provider override on top (or use the helper
+# `dotnet run --project tools/Gdb.DockerUp -- <provider>`):
+#     docker compose -f docker-compose.yml -f docker-compose.postgres.yml up --build
+#     docker compose -f docker-compose.yml -f docker-compose.mysql.yml    up --build
+#     docker compose -f docker-compose.yml -f docker-compose.sqlite.yml   up --build
+#     docker compose -f docker-compose.yml -f docker-compose.supabase.yml up --build
+#
+# Open http://localhost:3000  and log in with  admin / Welcome@1
+#
+# Networking (all env-driven, no code changes):
+#   • BROWSER  → services on localhost:8001..8008 (published ports).
+#   • SERVICE  → service by container name (http://auth-service:8004 …).
+# =============================================================================
+
+# Inter-service URLs + shared secret, identical for every backend.
+x-service-env: &service-env
+  CorsOrigins: "http://20.235.96.212:3000"
+  CorsAllowedOrigins: "http://20.235.96.212:3000"
+  AuthServiceUrl: http://auth-service:8004
+  UsersServiceUrl: http://users-service:8003
+  AccountsServiceUrl: http://accounts-service:8001
+  TransactionsServiceUrl: http://transactions-service:8002
+  AadharServiceUrl: http://aadhar-service:8005
+  CompanyServiceUrl: http://company-service:8006
+  NotificationServiceUrl: http://notification-service:8007
+  PaymentGatewayServiceUrl: http://payment-gateway-service:8008
+  InternalApiKey: dev-internal-api-key-change-in-prod
+  # Teaching/dev stack: opt into shared dev secret fallbacks. PRODUCTION must set this
+  # false (the default) and inject real JwtSecretKey/InternalApiKey/PinEncryptionKey.
+  AllowInsecureDefaults: "true"
+  # Teaching stack runs as Development: Swagger UI on, dev secret fallbacks permitted.
+  # docker-compose.prod.yml flips this to Production (fail-closed, no docs, no dev keys).
+  ASPNETCORE_ENVIRONMENT: Development
+  # Service discovery: register with + resolve through the registry by container
+  # DNS. Static *ServiceUrl values above remain the fallback if the registry is
+  # unavailable. Each service also sets its own InstanceUrl (container DNS) below.
+  ServiceDiscoveryEnabled: "true"
+  RegistryUrl: http://registry-service:8010
+
+services:
+  # ------------------------------------------------------------ core services
+  # DatabaseProvider defaults to inmemory here; a provider override replaces it.
+  auth-service:
+    build: { context: ., dockerfile: AuthService/Dockerfile }
+    ports: ["8004:8004"]
+    environment:
+      <<: *service-env
+      DatabaseProvider: inmemory
+      InstanceUrl: http://auth-service:8004
+  users-service:
+    build: { context: ., dockerfile: UsersService/Dockerfile }
+    ports: ["8003:8003"]
+    environment:
+      <<: *service-env
+      DatabaseProvider: inmemory
+      InstanceUrl: http://users-service:8003
+
+  accounts-service:
+    build: { context: ., dockerfile: AccountsService/Dockerfile }
+    ports: ["8001:8001"]
+    environment:
+      <<: *service-env
+      DatabaseProvider: inmemory
+      InstanceUrl: http://accounts-service:8001
+
+  transactions-service:
+    build: { context: ., dockerfile: TransactionsService/Dockerfile }
+    ports: ["8002:8002"]
+    environment:
+      <<: *service-env
+      DatabaseProvider: inmemory
+      InstanceUrl: http://transactions-service:8002
+
+  # ------------------------------------------------------- mock/helper services
+  aadhar-service:
+    build: { context: ., dockerfile: AadharService/Dockerfile }
+    ports: ["8005:8005"]
+    environment:
+      <<: *service-env
+      InstanceUrl: http://aadhar-service:8005
+
+  company-service:
+    build: { context: ., dockerfile: CompanyCrvService/Dockerfile }
+    ports: ["8006:8006"]
+    environment:
+      <<: *service-env
+      InstanceUrl: http://company-service:8006
+
+  notification-service:
+    build: { context: ., dockerfile: NotificationService/Dockerfile }
+    ports: ["8007:8007"]
+    environment:
+      <<: *service-env
+      InstanceUrl: http://notification-service:8007
+
+  payment-gateway-service:
+    build: { context: ., dockerfile: CentralPaymentGatewayService/Dockerfile }
+    ports: ["8008:8008"]
+    environment:
+      <<: *service-env
+      InstanceUrl: http://payment-gateway-service:8008
+
+  # -------------------------------------------- microservice-pattern services
+  # Service Discovery registry (services register; clients resolve by name).
+  registry-service:
+    build: { context: ., dockerfile: RegistryService/Dockerfile }
+    ports: ["8010:8010"]
+    environment:
+      # Registrations are [InternalApi]-protected: the registry must share the internal key.
+      InternalApiKey: dev-internal-api-key-change-in-prod
+      AllowInsecureDefaults: "true"
+      ASPNETCORE_ENVIRONMENT: Development
+
+  # API Gateway — single public entry point, reverse-proxies to the backends by
+  # first path segment. Backends resolved via GatewayBackends__<name> (container DNS).
+  api-gateway:
+    build: { context: ., dockerfile: CentralGatewayService/Dockerfile }
+    ports: ["8000:8000"]
+    environment:
+      GatewayBackends__accounts: http://accounts-service:8001
+      GatewayBackends__transactions: http://transactions-service:8002
+      GatewayBackends__users: http://users-service:8003
+      GatewayBackends__auth: http://auth-service:8004
+      GatewayBackends__aadhar: http://aadhar-service:8005
+      GatewayBackends__company: http://company-service:8006
+      GatewayBackends__notification: http://notification-service:8007
+      GatewayBackends__payment: http://payment-gateway-service:8008
+      # Resolve backends through the live registry (GatewayBackends__* above are the fallback).
+      ServiceDiscoveryEnabled: "true"
+      RegistryUrl: http://registry-service:8010
+      # Per-client-IP rate limit (0 disables). Generous default; abuse -> 429.
+      RateLimitPerMin: "600"
+      # The gateway calls the [InternalApi]-protected registry, so it shares the internal key.
+      InternalApiKey: dev-internal-api-key-change-in-prod
+      AllowInsecureDefaults: "true"
+      ASPNETCORE_ENVIRONMENT: Development
+      CorsOrigins: "http://20.235.96.212:3000"
+      CorsAllowedOrigins: "http://20.235.96.212:3000"
+    depends_on:
+      - auth-service
+      - accounts-service
+      - transactions-service
+      - users-service
+
+  # -------------------------------------------------------------------- web app
+  frontend:
+    build: ./frontend
+    ports: ["3000:80"]
+    depends_on:
+      - auth-service
+      - accounts-service
+      - transactions-service
+      - users-service

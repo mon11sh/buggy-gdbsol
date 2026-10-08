@@ -1,0 +1,6 @@
+@CentralPaymentGatewayService_HostAddress = http://localhost:5022
+
+GET {{CentralPaymentGatewayService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

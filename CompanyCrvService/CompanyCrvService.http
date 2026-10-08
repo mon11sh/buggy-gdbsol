@@ -1,0 +1,6 @@
+@CompanyCrvService_HostAddress = http://localhost:5062
+
+GET {{CompanyCrvService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

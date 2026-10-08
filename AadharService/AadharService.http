@@ -1,0 +1,6 @@
+@AadharService_HostAddress = http://localhost:5216
+
+GET {{AadharService_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

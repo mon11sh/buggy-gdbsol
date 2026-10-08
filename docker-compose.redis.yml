@@ -1,0 +1,42 @@
+# =============================================================================
+# docker-compose.redis.yml — shared state store overlay.
+#
+# Adds a Redis container and points the stateful backends at it, so PIN lockouts, login throttles
+# and transaction-history cache versions are shared by every replica instead of living in each
+# process. Required in production (docker-compose.prod.yml refuses to start without it unless
+# AllowSingleInstanceState=true); optional for the teaching stack.
+#
+#   docker compose -f docker-compose.yml -f docker-compose.postgres.yml -f docker-compose.redis.yml up --build
+# =============================================================================
+x-redis-env: &redis-env
+  Redis__ConnectionString: redis:6379
+
+services:
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "128mb", "--maxmemory-policy", "allkeys-lru"]
+    restart: unless-stopped
+    mem_limit: 192m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  accounts-service:
+    environment: *redis-env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  auth-service:
+    environment: *redis-env
+    depends_on:
+      redis:
+        condition: service_healthy
+
+  transactions-service:
+    environment: *redis-env
+    depends_on:
+      redis:
+        condition: service_healthy

@@ -1,0 +1,92 @@
+# ================================================================
+# GDB .NET Banking Application - .gitignore
+# ================================================================
+
+# ================================================================
+# ENVIRONMENT & SECRETS
+# ================================================================
+.env
+.env.*
+appsettings.Development.json
+appsettings.Local.json
+
+# ================================================================
+# .NET CORE
+# ================================================================
+[Bb]in/
+[Oo]bj/
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]inaries/
+[Pp]ublish/
+
+# NuGet Packages
+*.nupkg
+# The packages folder can be ignored because of Package Restore
+**/[Pp]ackages/*
+# except build/, which is used as an MSBuild target.
+!**/[Pp]ackages/build/
+*.nuget.props
+*.nuget.targets
+
+# ================================================================
+# DATABASES
+# ================================================================
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+
+# ================================================================
+# FRONTEND / NODE.JS
+# ================================================================
+node_modules/
+dist/
+dist-ssr/
+.npm/
+.eslintcache
+logs/
+*.log
+npm-debug.log*
+
+# ================================================================
+# IDE & EDITORS
+# ================================================================
+# Visual Studio
+.vs/
+*.suo
+*.userprefs
+
+# Visual Studio Code
+.vscode/
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+
+# JetBrains Rider
+.idea/
+*.sln.iml
+
+# Mac
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Runtime data and generated scratch output (never source)
+NotificationService/data/
+openapi-snapshots/*_actual.json

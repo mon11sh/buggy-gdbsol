@@ -1,0 +1,95 @@
+# =============================================================================
+# docker-compose.prod.yml — PRODUCTION hardening override.
+#
+# Stack it LAST on top of the base file and a real database provider, e.g.
+#   docker compose -f docker-compose.yml -f docker-compose.sqlserver.yml -f docker-compose.prod.yml up -d
+#
+# What it changes versus the teaching stack:
+#   • ASPNETCORE_ENVIRONMENT=Production  -> Swagger/OpenAPI is NOT served, dev fallbacks refused.
+#   • AllowInsecureDefaults=false        -> every service FAILS TO START unless real secrets are
+#                                          injected (SecureConfigGuard is fail-closed).
+#   • Secrets come from the host environment (`${VAR:?}` aborts if unset); never commit them.
+#   • Backend ports are NO LONGER PUBLISHED: the API gateway (:8000) is the only ingress.
+#     (`!reset` clears the base file's port mappings — requires Docker Compose v2.24+.)
+#   • Every container restarts on failure and runs under a memory ceiling; the .NET runtime reads
+#     the cgroup limit and sizes its GC heap (75% of it) accordingly, so memory is predictable.
+#   • The gateway trusts X-Forwarded-* from the ingress in front of it (rate limits key on the
+#     real client IP); set GDB_TRUST_FORWARDED_HEADERS=false if the gateway is exposed directly.
+#
+# Generate secrets, e.g.:  openssl rand -base64 48
+# =============================================================================
+x-prod-env: &prod-env
+  ASPNETCORE_ENVIRONMENT: Production
+  AllowInsecureDefaults: "false"
+  InternalApiKey: ${GDB_INTERNAL_API_KEY:?set GDB_INTERNAL_API_KEY}
+
+x-runtime: &runtime
+  restart: unless-stopped
+  mem_limit: 512m
+  cpus: 1.0
+  stop_grace_period: 30s
+
+services:
+  auth-service:
+    <<: *runtime
+    ports: !reset []
+    environment:
+      <<: *prod-env
+      JwtSecretKey: ${GDB_JWT_SECRET_KEY:?set GDB_JWT_SECRET_KEY (>=32 bytes)}
+
+  users-service:
+    <<: *runtime
+    ports: !reset []
+    environment:
+      <<: *prod-env
+      JwtSecretKey: ${GDB_JWT_SECRET_KEY:?set GDB_JWT_SECRET_KEY (>=32 bytes)}
+
+  accounts-service:
+    <<: *runtime
+    ports: !reset []
+    environment:
+      <<: *prod-env
+      JwtSecretKey: ${GDB_JWT_SECRET_KEY:?set GDB_JWT_SECRET_KEY (>=32 bytes)}
+      PinEncryptionKey: ${GDB_PIN_ENCRYPTION_KEY:?set GDB_PIN_ENCRYPTION_KEY}
+
+  transactions-service:
+    <<: *runtime
+    ports: !reset []
+    environment:
+      <<: *prod-env
+      JwtSecretKey: ${GDB_JWT_SECRET_KEY:?set GDB_JWT_SECRET_KEY (>=32 bytes)}
+
+  aadhar-service:
+    <<: *runtime
+    ports: !reset []
+    environment: *prod-env
+
+  company-service:
+    <<: *runtime
+    ports: !reset []
+    environment: *prod-env
+
+  notification-service:
+    <<: *runtime
+    ports: !reset []
+    environment: *prod-env
+
+  payment-gateway-service:
+    <<: *runtime
+    ports: !reset []
+    environment: *prod-env
+
+  registry-service:
+    <<: *runtime
+    ports: !reset []
+    environment: *prod-env
+
+  api-gateway:
+    <<: *runtime
+    environment:
+      <<: *prod-env
+      TrustForwardedHeaders: ${GDB_TRUST_FORWARDED_HEADERS:-true}
+
+  frontend:
+    restart: unless-stopped
+    mem_limit: 128m

@@ -1,0 +1,32 @@
+<Project>
+  <!-- Central build governance for every project in the solution. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <Deterministic>true</Deterministic>
+    <AnalysisLevel>latest</AnalysisLevel>
+
+    <!-- Warning gate: the build is either clean or broken. Nullable, analyzer and NuGet warnings
+         alike - nobody reads a warning list that is allowed to grow. -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+
+    <!-- Supply-chain gate: NuGet audits every restore (transitive packages included) and any known
+         advisory FAILS the build, locally and in CI - not a warning nobody reads. -->
+    <NuGetAudit>true</NuGetAudit>
+    <NuGetAuditMode>all</NuGetAuditMode>
+    <NuGetAuditLevel>low</NuGetAuditLevel>
+    <WarningsAsErrors>$(WarningsAsErrors);NU1901;NU1902;NU1903;NU1904</WarningsAsErrors>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <!-- Every entry here needs a written justification and an owner decision.
+         GHSA-rvv3-g6hj-g44x (AutoMapper 14.0.0, DoS via uncontrolled recursion when mapping attacker-shaped
+         object graphs): fixed only in the commercially licensed 15+ line. Used in UsersService only, and only
+         to map the service's own flat domain objects to response DTOs - request payloads never reach the
+         mapper, so the recursion path is not reachable. Decision (owner, 2026-09-09): keep 14.0.0 as the
+         curriculum's AutoMapper example. Re-evaluate if the profile ever maps inbound data. -->
+    <NuGetAuditSuppress Include="https://github.com/advisories/GHSA-rvv3-g6hj-g44x" />
+  </ItemGroup>
+</Project>

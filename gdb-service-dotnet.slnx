@@ -1,0 +1,27 @@
+<Solution>
+  <Folder Name="/shared/">
+    <Project Path="shared/Gdb.Common.Tests/Gdb.Common.Tests.csproj" />
+    <Project Path="shared/Gdb.Common/Gdb.Common.csproj" />
+  </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/Gdb.DockerUp/Gdb.DockerUp.csproj" />
+    <Project Path="tools/Gdb.OpenApiGate/Gdb.OpenApiGate.csproj" />
+    <Project Path="tools/Gdb.Runner/Gdb.Runner.csproj" />
+    <Project Path="tools/Gdb.Setup/Gdb.Setup.csproj" />
+  </Folder>
+  <Project Path="AadharService/AadharService.csproj" />
+  <Project Path="AccountsService/AccountsService.csproj" />
+  <Project Path="AccountsService.Tests/AccountsService.Tests.csproj" />
+  <Project Path="AuthService/AuthService.csproj" />
+  <Project Path="AuthService.Tests/AuthService.Tests.csproj" />
+  <Project Path="CentralGatewayService/CentralGatewayService.csproj" />
+  <Project Path="CentralPaymentGatewayService/CentralPaymentGatewayService.csproj" />
+  <Project Path="CompanyCrvService/CompanyCrvService.csproj" />
+  <Project Path="Gdb.Integration.Tests/Gdb.Integration.Tests.csproj" />
+  <Project Path="NotificationService/NotificationService.csproj" />
+  <Project Path="RegistryService/RegistryService.csproj" />
+  <Project Path="TransactionsService/TransactionsService.csproj" />
+  <Project Path="TransactionsService.Tests/TransactionsService.Tests.csproj" />
+  <Project Path="UsersService/UsersService.csproj" />
+  <Project Path="UsersService.Tests/UsersService.Tests.csproj" />
+</Solution>

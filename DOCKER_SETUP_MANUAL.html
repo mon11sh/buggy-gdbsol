@@ -1,0 +1,540 @@
+<title>GDB Docker Manual for Students</title>
+<style>
+  :root{
+    --paper:#F4F7FB; --surface:#FFFFFF; --surface-2:#FAFBFE;
+    --ink:#131A28; --ink-soft:#43506B; --ink-faint:#78849C;
+    --line:#E0E6F1; --line-strong:#C5CFE0;
+    --accent:#0B6BCB; --accent-ink:#0A55A3; --accent-wash:#E6F0FB;
+    --good:#0C9A69; --good-wash:#E3F5ED; --good-ink:#0A7C55;
+    --warn:#B26A08; --warn-wash:#FAF0DD; --danger:#CE3D28; --danger-wash:#FAE8E5;
+    --code-bg:#0B1220; --code-ink:#D7E1F4; --code-faint:#7C8BB0;
+    --radius:14px;
+    --mono:ui-monospace,"Cascadia Code","Cascadia Mono","Consolas","SFMono-Regular",monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI Variable","Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --paper:#0B111D; --surface:#131A29; --surface-2:#18202F;
+      --ink:#E8EDF7; --ink-soft:#ADB8CE; --ink-faint:#76809A;
+      --line:#232D46; --line-strong:#31405E;
+      --accent:#4FA3F0; --accent-ink:#7DBEFF; --accent-wash:#122236;
+      --good:#3BC48D; --good-wash:#142720; --good-ink:#4FD69C;
+      --warn:#E0A34A; --warn-wash:#2A2113; --danger:#F0745E; --danger-wash:#2C1612;
+      --code-bg:#070C16; --code-ink:#D0DAEF; --code-faint:#6A789B;
+    }
+  }
+  :root[data-theme="light"]{
+    --paper:#F4F7FB; --surface:#FFFFFF; --surface-2:#FAFBFE;
+    --ink:#131A28; --ink-soft:#43506B; --ink-faint:#78849C;
+    --line:#E0E6F1; --line-strong:#C5CFE0;
+    --accent:#0B6BCB; --accent-ink:#0A55A3; --accent-wash:#E6F0FB;
+    --good:#0C9A69; --good-wash:#E3F5ED; --good-ink:#0A7C55;
+    --warn:#B26A08; --warn-wash:#FAF0DD; --danger:#CE3D28; --danger-wash:#FAE8E5;
+    --code-bg:#0B1220; --code-ink:#D7E1F4; --code-faint:#7C8BB0;
+  }
+  :root[data-theme="dark"]{
+    --paper:#0B111D; --surface:#131A29; --surface-2:#18202F;
+    --ink:#E8EDF7; --ink-soft:#ADB8CE; --ink-faint:#76809A;
+    --line:#232D46; --line-strong:#31405E;
+    --accent:#4FA3F0; --accent-ink:#7DBEFF; --accent-wash:#122236;
+    --good:#3BC48D; --good-wash:#142720; --good-ink:#4FD69C;
+    --warn:#E0A34A; --warn-wash:#2A2113; --danger:#F0745E; --danger-wash:#2C1612;
+    --code-bg:#070C16; --code-ink:#D0DAEF; --code-faint:#6A789B;
+  }
+
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--paper); color:var(--ink); font-family:var(--sans);
+    line-height:1.62; font-size:16.5px; -webkit-font-smoothing:antialiased}
+  .wrap{max-width:1180px; margin:0 auto; padding:0 22px}
+
+  .masthead{background:linear-gradient(180deg,color-mix(in srgb,var(--accent) 10%,var(--surface)) 0%,var(--surface) 100%);
+    border-bottom:1px solid var(--line)}
+  .masthead .wrap{padding:46px 22px 38px}
+  .kicker{font-family:var(--mono); font-size:12.5px; letter-spacing:.22em; text-transform:uppercase;
+    color:var(--accent-ink); font-weight:700; display:flex; align-items:center; gap:10px}
+  .kicker::before{content:""; width:26px; height:2px; background:var(--accent)}
+  h1.title{font-size:clamp(30px,5vw,50px); line-height:1.05; margin:.34em 0 .18em; letter-spacing:-.02em;
+    text-wrap:balance; font-weight:800}
+  .lede{font-size:clamp(16px,2vw,19px); color:var(--ink-soft); max-width:62ch; margin:0}
+  .stamp-row{display:flex; flex-wrap:wrap; gap:10px; margin-top:22px}
+  .stamp{font-family:var(--mono); font-size:12.5px; font-weight:600; padding:7px 12px; border-radius:999px;
+    border:1px solid var(--line-strong); background:var(--surface); color:var(--ink-soft); display:inline-flex; gap:7px}
+  .stamp b{color:var(--ink)}
+
+  .shell{display:grid; grid-template-columns:238px minmax(0,1fr); gap:44px; padding:36px 0 90px}
+  @media (max-width:900px){.shell{grid-template-columns:1fr; gap:8px}}
+  nav.toc{position:sticky; top:20px; align-self:start; font-size:14.5px}
+  @media (max-width:900px){nav.toc{position:static; border:1px solid var(--line); border-radius:var(--radius);
+    background:var(--surface); padding:14px 16px; margin-bottom:14px}}
+  nav.toc .toc-h{font-family:var(--mono); font-size:11.5px; letter-spacing:.18em; text-transform:uppercase;
+    color:var(--ink-faint); margin:0 0 12px; font-weight:700}
+  nav.toc ol{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:2px}
+  nav.toc a{display:flex; gap:11px; align-items:baseline; text-decoration:none; color:var(--ink-soft);
+    padding:6px 9px; border-radius:8px}
+  nav.toc a:hover{background:var(--accent-wash); color:var(--ink)}
+  nav.toc a .n{font-family:var(--mono); font-size:12px; color:var(--accent-ink); font-weight:700; min-width:16px}
+  main{min-width:0}
+
+  section{scroll-margin-top:20px; margin-bottom:52px}
+  .sec-head{display:flex; gap:16px; align-items:flex-start; margin-bottom:8px}
+  .sec-num{font-family:var(--mono); font-weight:800; font-size:14px; color:var(--accent-ink);
+    border:1.5px solid var(--accent); border-radius:9px; padding:5px 9px; line-height:1; background:var(--accent-wash);
+    white-space:nowrap; margin-top:6px}
+  h2{font-size:clamp(23px,3.2vw,31px); letter-spacing:-.015em; margin:0; text-wrap:balance; font-weight:800}
+  .sec-head p{margin:6px 0 0; color:var(--ink-soft)}
+  h3{font-size:20px; letter-spacing:-.01em; margin:32px 0 10px; font-weight:750}
+  p{margin:12px 0}
+  a{color:var(--accent-ink); text-underline-offset:2px}
+  strong{font-weight:700}
+  code.inl{font-family:var(--mono); font-size:.9em; background:var(--accent-wash); color:var(--accent-ink);
+    padding:2px 6px; border-radius:6px; border:1px solid color-mix(in srgb,var(--accent) 22%,transparent)}
+  kbd{font-family:var(--mono); font-size:.85em; background:var(--surface); border:1px solid var(--line-strong);
+    border-bottom-width:2px; border-radius:6px; padding:1px 6px; color:var(--ink)}
+
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:20px 22px; margin:18px 0}
+  .note{border-left:3px solid var(--accent); background:var(--accent-wash); border-radius:0 10px 10px 0; padding:13px 16px; margin:16px 0}
+  .note.good{border-color:var(--good); background:var(--good-wash)}
+  .note.warn{border-color:var(--warn); background:var(--warn-wash)}
+  .note.danger{border-color:var(--danger); background:var(--danger-wash)}
+  .note .lab{font-family:var(--mono); font-size:11.5px; letter-spacing:.14em; text-transform:uppercase; font-weight:700; display:block; margin-bottom:3px; opacity:.85}
+  .note p{margin:4px 0}
+
+  .term{background:var(--code-bg); border-radius:11px; overflow:hidden; margin:14px 0;
+    border:1px solid color-mix(in srgb,var(--code-bg) 60%,#000); box-shadow:0 8px 26px rgba(10,16,34,.18)}
+  .term-bar{display:flex; align-items:center; gap:8px; padding:9px 13px;
+    background:color-mix(in srgb,var(--code-bg) 82%,#fff 6%); border-bottom:1px solid rgba(255,255,255,.06)}
+  .term-bar .dot{width:11px; height:11px; border-radius:50%}
+  .dot.r{background:#F0685C} .dot.y{background:#F4BF4F} .dot.g{background:#61C554}
+  .term-bar .tt{font-family:var(--mono); font-size:12px; color:var(--code-faint); margin-left:8px}
+  .term pre{margin:0; padding:15px 16px; overflow-x:auto; font-family:var(--mono); font-size:13.5px; line-height:1.7; color:var(--code-ink)}
+  .term pre .cmt{color:var(--code-faint)} .term pre .pmt{color:#61C554} .term pre .out{color:#8fa0c9} .term pre b{color:#fff; font-weight:600}
+
+  figure{margin:20px 0; border:1px solid var(--line); border-radius:var(--radius); overflow:hidden; background:var(--surface-2)}
+  figure .fig-cap{font-size:13px; color:var(--ink-faint); padding:10px 15px; border-top:1px solid var(--line); font-family:var(--mono); display:flex; gap:8px}
+  figure .fig-cap b{color:var(--ink-soft); font-weight:700}
+  figure svg{display:block; width:100%; height:auto}
+
+  ol.steps{counter-reset:st; list-style:none; padding:0; margin:16px 0; display:flex; flex-direction:column; gap:12px}
+  ol.steps>li{counter-increment:st; position:relative; padding:14px 16px 14px 52px; background:var(--surface); border:1px solid var(--line); border-radius:11px}
+  ol.steps>li::before{content:counter(st); position:absolute; left:14px; top:13px; font-family:var(--mono); font-weight:800; font-size:13px; color:#fff; background:var(--accent); width:24px; height:24px; border-radius:7px; display:grid; place-items:center}
+
+  .tbl-scroll{overflow-x:auto; margin:16px 0; border:1px solid var(--line); border-radius:var(--radius)}
+  table{border-collapse:collapse; width:100%; font-size:14.5px; min-width:540px}
+  th,td{text-align:left; padding:11px 15px; border-bottom:1px solid var(--line); vertical-align:top}
+  thead th{background:var(--surface-2); font-size:12.5px; letter-spacing:.04em; text-transform:uppercase; color:var(--ink-faint); font-weight:700; white-space:nowrap}
+  tbody tr:last-child td{border-bottom:none}
+  td.mono,.num{font-family:var(--mono); font-variant-numeric:tabular-nums} td.mono{color:var(--accent-ink)}
+  .pill{display:inline-block; font-family:var(--mono); font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px; border:1px solid currentColor}
+  .pill.ok{color:var(--good)} .pill.no{color:var(--ink-faint)} .pill.cloud{color:var(--accent-ink)}
+
+  .prov-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin:18px 0}
+  .prov{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:16px 17px; display:flex; flex-direction:column; gap:8px}
+  .prov .pv-top{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .prov h4{margin:0; font-size:16px} .prov p{margin:0; font-size:13.5px; color:var(--ink-soft)}
+  .prov .diff{font-family:var(--mono); font-size:11px; font-weight:700; padding:2px 8px; border-radius:6px}
+  .diff.easy{background:var(--good-wash); color:var(--good)} .diff.mid{background:var(--warn-wash); color:var(--warn)}
+  .prov .pv-cmd{font-family:var(--mono); font-size:12px; background:var(--code-bg); color:var(--code-ink); padding:8px 10px; border-radius:8px; overflow-x:auto; margin-top:auto}
+
+  .banner{display:flex; flex-wrap:wrap; gap:14px; align-items:center; justify-content:space-between;
+    background:var(--surface); border:1px solid var(--line-strong); border-radius:var(--radius); padding:14px 18px; margin:0 0 8px}
+  .banner .bl{font-size:14.5px; color:var(--ink-soft)} .banner b{color:var(--ink)}
+  .banner a{display:inline-flex; gap:8px; align-items:center; font-weight:700; text-decoration:none;
+    background:var(--accent-wash); border:1px solid color-mix(in srgb,var(--accent) 30%,transparent); color:var(--accent-ink);
+    padding:8px 14px; border-radius:9px}
+
+  footer{border-top:1px solid var(--line); padding:26px 0 60px; color:var(--ink-faint); font-size:13.5px}
+  footer .wrap{display:flex; flex-wrap:wrap; gap:14px; justify-content:space-between}
+  @media (prefers-reduced-motion:no-preference){nav.toc a{transition:background .15s,color .15s} .prov{transition:transform .15s,box-shadow .15s} .prov:hover{transform:translateY(-2px); box-shadow:0 10px 24px rgba(20,30,60,.08)}}
+</style>
+
+<header class="masthead">
+  <div class="wrap">
+    <div class="kicker">Global Digital Bank &middot; Docker Edition</div>
+    <h1 class="title">Run the whole bank in Docker, one command, any database.</h1>
+    <p class="lede">For students with a capable laptop: install Docker once, then start all 8 microservices, the web
+      app, and (optionally) a database — together, isolated, reproducible — with a single command. Switch between all
+      five database providers by changing one word.</p>
+    <div class="stamp-row">
+      <span class="stamp">🐳 <b>1</b> command</span>
+      <span class="stamp">📦 <b>9</b> containers</span>
+      <span class="stamp">🗄️ <b>5</b> database options</span>
+      <span class="stamp">🔑 <b>admin / Welcome@1</b></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="shell">
+    <nav class="toc" aria-label="Contents">
+      <p class="toc-h">Contents</p>
+      <ol>
+        <li><a href="#which"><span class="n">00</span><span>Docker or local?</span></a></li>
+        <li><a href="#install"><span class="n">01</span><span>Install Docker</span></a></li>
+        <li><a href="#start"><span class="n">02</span><span>Start the stack</span></a></li>
+        <li><a href="#db"><span class="n">03</span><span>Pick a database</span></a></li>
+        <li><a href="#network"><span class="n">04</span><span>How it connects</span></a></li>
+        <li><a href="#providers"><span class="n">05</span><span>Each provider</span></a></li>
+        <li><a href="#manage"><span class="n">06</span><span>Stop · switch · clean</span></a></li>
+        <li><a href="#inspect"><span class="n">07</span><span>Inspect the data</span></a></li>
+        <li><a href="#trouble"><span class="n">08</span><span>Troubleshooting</span></a></li>
+        <li><a href="#cheat"><span class="n">09</span><span>Quick reference</span></a></li>
+      </ol>
+    </nav>
+
+    <main>
+      <div class="banner">
+        <span class="bl">💻 No Docker? Prefer to run each service straight on your machine? Use the
+          <b>Local edition</b> instead.</span>
+        <a href="https://claude.ai/code/artifact/60ea7bb4-81fc-4aa1-a706-b7c0e5d76d29">Open the Local manual →</a>
+      </div>
+
+      <!-- 00 -->
+      <section id="which">
+        <div class="sec-head"><span class="sec-num">00</span>
+          <div><h2>Docker or local — which should you use?</h2>
+          <p>Both run the exact same app. Pick the path that matches your laptop and your goal.</p></div>
+        </div>
+        <figure>
+          <svg viewBox="0 0 900 250" role="img" aria-label="Two ways to run: Docker versus local">
+            <rect x="0" y="0" width="900" height="250" fill="none"/>
+            <rect x="40" y="30" width="390" height="190" rx="14" fill="var(--surface)" stroke="#0B6BCB" stroke-width="2"/>
+            <text x="60" y="66" font-family="sans-serif" font-weight="800" font-size="18" fill="#0A55A3">🐳 Docker (this manual)</text>
+            <g font-family="sans-serif" font-size="13.5" fill="#43506B">
+              <text x="60" y="98">One command starts everything</text>
+              <text x="60" y="122">Database included in the same command</text>
+              <text x="60" y="146">Nothing installed but Docker itself</text>
+              <text x="60" y="170">Needs a capable laptop (8 GB+ RAM)</text>
+              <text x="60" y="198" font-weight="700" fill="#0A7C55">Best for: a clean, reproducible run</text>
+            </g>
+            <rect x="470" y="30" width="390" height="190" rx="14" fill="var(--surface)" stroke="#C5CFE0" stroke-width="2"/>
+            <text x="490" y="66" font-family="sans-serif" font-weight="800" font-size="18" fill="#43506B">💻 Local (other manual)</text>
+            <g font-family="sans-serif" font-size="13.5" fill="#43506B">
+              <text x="490" y="98">Runs directly with Python + Node</text>
+              <text x="490" y="122">You install the DB tools you use</text>
+              <text x="490" y="146">Lighter on older / low-RAM laptops</text>
+              <text x="490" y="170">Nine terminal windows open</text>
+              <text x="490" y="198" font-weight="700" fill="#0A7C55">Best for: editing &amp; debugging code</text>
+            </g>
+          </svg>
+          <figcaption class="fig-cap"><b>FIG 1</b> Same application, two ways to run it. This manual covers the Docker path.</figcaption>
+        </figure>
+      </section>
+
+      <!-- 01 INSTALL -->
+      <section id="install">
+        <div class="sec-head"><span class="sec-num">01</span>
+          <div><h2>Install Docker Desktop</h2>
+          <p>Docker Desktop bundles everything you need on Windows (including the engine that actually runs the
+          containers).</p></div>
+        </div>
+        <ol class="steps">
+          <li><strong>Download</strong> from <a href="https://www.docker.com/products/docker-desktop/">docker.com/products/docker-desktop</a>
+            → <em>Download for Windows</em>.</li>
+          <li><strong>Run the installer</strong> and keep the defaults. When asked, leave
+            <em>“Use WSL 2 instead of Hyper-V”</em> ticked (recommended). Approve the Windows prompt.</li>
+          <li><strong>Restart</strong> if it asks you to. On first launch, accept the service agreement.</li>
+          <li><strong>Wait for the engine.</strong> Open Docker Desktop and watch the bottom-left whale icon &mdash; it
+            must turn green and say <strong>“Engine running”</strong> before any command will work.</li>
+        </ol>
+        <figure>
+          <svg viewBox="0 0 900 130" role="img" aria-label="Docker Desktop engine running indicator">
+            <rect x="0" y="0" width="900" height="130" fill="var(--surface-2)"/>
+            <rect x="30" y="30" width="840" height="70" rx="10" fill="#131A29"/>
+            <circle cx="70" cy="65" r="12" fill="#61C554"/>
+            <text x="95" y="62" font-family="monospace" font-size="14" fill="#D7E1F4">🐳 Docker Desktop</text>
+            <text x="95" y="82" font-family="monospace" font-size="13" fill="#61C554">Engine running</text>
+            <text x="500" y="70" font-family="sans-serif" font-size="13" fill="#8fa0c9">← must be GREEN before you run commands</text>
+          </svg>
+          <figcaption class="fig-cap"><b>FIG 2</b> The green “Engine running” status. Grey/red = start Docker Desktop and wait.</figcaption>
+        </figure>
+        <p>Confirm it from a terminal:</p>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">PowerShell</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>docker --version</b>
+<span class="out">Docker version 27.x, build ...</span>
+<span class="pmt">PS&gt;</span> <b>docker compose version</b>
+<span class="out">Docker Compose version v2.x</span>
+<span class="pmt">PS&gt;</span> <b>docker ps</b>            <span class="cmt"># empty list = engine is up and healthy</span>
+<span class="out">CONTAINER ID   IMAGE   ...</span></pre>
+        </div>
+        <div class="note warn"><span class="lab">If docker ps errors</span>
+          <p><code class="inl">cannot find … dockerDesktopLinuxEngine</code> means the engine isn’t running. Open
+          Docker Desktop and wait for the green whale, then try again.</p></div>
+      </section>
+
+      <!-- 02 START -->
+      <section id="start">
+        <div class="sec-head"><span class="sec-num">02</span>
+          <div><h2>Start the whole stack</h2>
+          <p>Open a terminal in the <code class="inl">gdb-service</code> folder and run one line. The first run builds
+          the images (a few minutes); later runs are cached and fast.</p></div>
+        </div>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">PowerShell — inside gdb-service</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>cd "C:\...\Trainer_PythonFullstack_GDB\gdb-service"</b>
+<span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.DockerUp inmemory</b>    <span class="cmt"># fastest: no database to set up</span>
+<span class="out">→ docker compose -f docker-compose.yml up --build</span>
+<span class="out">   provider = inmemory  |  open http://localhost:3000  (admin / Welcome@1)</span>
+<span class="out">[+] Running 9/9  ✔ auth-service ✔ accounts-service ✔ transactions-service …</span></pre>
+        </div>
+        <p>When it settles, open <strong>http://localhost:3000</strong> and log in with
+        <strong>admin / Welcome@1</strong>. That’s the entire app running in containers.</p>
+        <div class="note good"><span class="lab">The one-word launcher</span>
+          <p><code class="inl">docker_up.py</code> just picks the right compose files for you. Every provider is the
+          same shape: <code class="inl">dotnet run --project tools/Gdb.DockerUp &lt;provider&gt;</code>. Add <code class="inl">-d</code> to
+          run in the background.</p></div>
+      </section>
+
+      <!-- 03 DB -->
+      <section id="db">
+        <div class="sec-head"><span class="sec-num">03</span>
+          <div><h2>Pick your database — one word</h2>
+          <p>All five providers from the local edition work in Docker too. Change one word; the app code never
+          changes.</p></div>
+        </div>
+        <div class="prov-grid">
+          <div class="prov"><div class="pv-top"><h4>In-Memory</h4><span class="diff easy">EASIEST</span></div>
+            <p>No database container. Lives in RAM, resets on stop. The base default.</p>
+            <div class="pv-cmd">dotnet run --project tools/Gdb.DockerUp inmemory</div></div>
+          <div class="prov"><div class="pv-top"><h4>SQLite</h4><span class="diff easy">EASY</span></div>
+            <p>No container. A <code class="inl">.db</code> file inside each service container.</p>
+            <div class="pv-cmd">dotnet run --project tools/Gdb.DockerUp sqlite</div></div>
+          <div class="prov"><div class="pv-top"><h4>PostgreSQL</h4><span class="diff mid">BUNDLED</span></div>
+            <p>Spins up a Postgres container with a saved volume. Nothing to install.</p>
+            <div class="pv-cmd">dotnet run --project tools/Gdb.DockerUp postgres</div></div>
+          <div class="prov"><div class="pv-top"><h4>MySQL</h4><span class="diff mid">BUNDLED</span></div>
+            <p>Spins up a MySQL 8 container with a saved volume. Nothing to install.</p>
+            <div class="pv-cmd">dotnet run --project tools/Gdb.DockerUp mysql</div></div>
+          <div class="prov"><div class="pv-top"><h4>Supabase</h4><span class="diff mid">CLOUD</span></div>
+            <p>Cloud Postgres. Needs a <code class="inl">.env</code> with your project’s connection.</p>
+            <div class="pv-cmd">dotnet run --project tools/Gdb.DockerUp supabase</div></div>
+        </div>
+        <div class="note"><span class="lab">Prefer the raw command?</span>
+          <p>The helper is optional. Under the hood it runs, e.g.:
+          <code class="inl">docker compose -f docker-compose.yml -f docker-compose.postgres.yml up --build</code>.</p></div>
+      </section>
+
+      <!-- 04 NETWORK -->
+      <section id="network">
+        <div class="sec-head"><span class="sec-num">04</span>
+          <div><h2>How the containers connect</h2>
+          <p>One idea explains everything: your <em>browser</em> reaches services through published
+          <code class="inl">localhost</code> ports, while the <em>services</em> reach each other by container name on a
+          private Docker network.</p></div>
+        </div>
+        <figure>
+          <svg viewBox="0 0 900 470" role="img" aria-label="Container network: browser via localhost ports, services via container DNS">
+            <defs><marker id="a" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#78849C"/></marker>
+              <marker id="v" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 Z" fill="#6A44C8"/></marker>
+              <style>.l{font:600 12px monospace; fill:#fff}.s{font:10px monospace; fill:#c7d0e1}.h{font:700 12px sans-serif; fill:#43506B}</style></defs>
+            <!-- browser -->
+            <rect x="24" y="200" width="110" height="66" rx="10" fill="#0B6BCB"/><text x="79" y="230" text-anchor="middle" class="l">Browser</text><text x="79" y="248" text-anchor="middle" class="s">on your PC</text>
+            <!-- host boundary -->
+            <rect x="160" y="24" width="716" height="424" rx="14" fill="none" stroke="#C5CFE0" stroke-dasharray="5 4"/>
+            <text x="176" y="46" class="h" fill="#78849C">Docker network “gdb” (private)</text>
+            <!-- published ports rail -->
+            <rect x="176" y="60" width="150" height="372" rx="10" fill="var(--surface-2)" stroke="#C5CFE0"/>
+            <text x="251" y="82" text-anchor="middle" class="h" fill="#0A55A3">published ports</text>
+            <g font-family="monospace" font-size="11" fill="#43506B">
+              <text x="192" y="108">localhost:3000</text><text x="192" y="150">localhost:8001</text>
+              <text x="192" y="176">localhost:8002</text><text x="192" y="202">localhost:8003</text>
+              <text x="192" y="228">localhost:8004</text><text x="192" y="300">localhost:5432</text>
+              <text x="192" y="326" fill="#78849C">/ :3306 (db)</text>
+            </g>
+            <line x1="134" y1="233" x2="174" y2="180" stroke="#78849C" stroke-width="2" marker-end="url(#a)"/>
+            <text x="90" y="285" class="h" fill="#0A55A3">localhost only</text>
+            <!-- frontend -->
+            <rect x="360" y="70" width="150" height="46" rx="9" fill="#0C9A69"/><text x="435" y="90" text-anchor="middle" class="l">frontend</text><text x="435" y="106" text-anchor="middle" class="s">nginx :80 → 3000</text>
+            <!-- core -->
+            <g>
+              <rect x="360" y="128" width="150" height="40" rx="8" fill="#1c2c66"/><text x="370" y="146" class="l">auth-service</text><text x="370" y="160" class="s">:8004</text>
+              <rect x="360" y="176" width="150" height="40" rx="8" fill="#1c2c66"/><text x="370" y="194" class="l">accounts-service</text><text x="370" y="208" class="s">:8001</text>
+              <rect x="360" y="224" width="150" height="40" rx="8" fill="#1c2c66"/><text x="370" y="242" class="l">transactions-service</text><text x="370" y="256" class="s">:8002</text>
+              <rect x="360" y="272" width="150" height="40" rx="8" fill="#1c2c66"/><text x="370" y="290" class="l">users-service</text><text x="370" y="304" class="s">:8003</text>
+            </g>
+            <!-- mocks -->
+            <g>
+              <rect x="530" y="128" width="150" height="40" rx="8" fill="#31405E"/><text x="540" y="146" class="l">aadhar-service</text><text x="540" y="160" class="s">:8005</text>
+              <rect x="530" y="176" width="150" height="40" rx="8" fill="#31405E"/><text x="540" y="194" class="l">company-service</text><text x="540" y="208" class="s">:8006</text>
+              <rect x="530" y="224" width="150" height="40" rx="8" fill="#31405E"/><text x="540" y="242" class="l">notification</text><text x="540" y="256" class="s">:8007</text>
+              <rect x="530" y="272" width="150" height="40" rx="8" fill="#31405E"/><text x="540" y="290" class="l">payment-gateway</text><text x="540" y="304" class="s">:8008</text>
+            </g>
+            <!-- db -->
+            <rect x="700" y="176" width="150" height="90" rx="10" fill="#B26A08"/><text x="775" y="214" text-anchor="middle" class="l">postgres / mysql</text><text x="775" y="232" text-anchor="middle" class="s">(bundled providers)</text><text x="775" y="250" text-anchor="middle" class="s">+ saved volume</text>
+            <!-- internal DNS arrows -->
+            <line x1="510" y1="244" x2="530" y2="196" stroke="#6A44C8" stroke-width="1.6" marker-end="url(#v)"/>
+            <line x1="510" y1="244" x2="530" y2="292" stroke="#6A44C8" stroke-width="1.6" marker-end="url(#v)"/>
+            <line x1="510" y1="244" x2="698" y2="230" stroke="#6A44C8" stroke-width="1.6" marker-end="url(#v)"/>
+            <text x="565" y="360" class="h" fill="#6A44C8">service → service by name:</text>
+            <text x="565" y="378" font-family="monospace" font-size="11" fill="#6A44C8">http://accounts-service:8001</text>
+            <text x="565" y="394" font-family="monospace" font-size="11" fill="#6A44C8">http://postgres:5432</text>
+          </svg>
+          <figcaption class="fig-cap"><b>FIG 3</b> Blue = browser via published <b>localhost</b> ports. Purple = container-to-container by <b>service name</b>.</figcaption>
+        </figure>
+        <div class="note"><span class="lab">Why the frontend uses localhost</span>
+          <p>The React app runs in <em>your browser</em>, which is outside Docker — so it must call
+          <code class="inl">localhost:8001…8008</code> (the published ports). Only the backend containers, living on
+          the private network, can use names like <code class="inl">accounts-service</code>. All of this is set by
+          environment variables — no code changes.</p></div>
+      </section>
+
+      <!-- 05 PROVIDERS -->
+      <section id="providers">
+        <div class="sec-head"><span class="sec-num">05</span>
+          <div><h2>What each provider does in Docker</h2></div>
+        </div>
+        <h3>In-Memory &nbsp;<span class="pill ok">no container</span></h3>
+        <p><code class="inl">dotnet run --project tools/Gdb.DockerUp inmemory</code> — the base setup with no database at all. Data lives in
+        RAM and resets on stop. Fastest way to confirm the whole stack works.</p>
+
+        <h3>SQLite &nbsp;<span class="pill ok">no container</span></h3>
+        <p><code class="inl">dotnet run --project tools/Gdb.DockerUp sqlite</code> — each data service writes its own
+        <code class="inl">.db</code> file <em>inside its container</em>. Data survives restarts but is wiped by
+        <code class="inl">down</code> (the file lives in the container, not a volume).</p>
+
+        <h3>PostgreSQL &nbsp;<span class="pill cloud">bundled</span></h3>
+        <p><code class="inl">dotnet run --project tools/Gdb.DockerUp postgres</code> — starts a <code class="inl">postgres:16</code> container.
+        Each service auto-creates its own <code class="inl">gdb_*_db</code>. Data is kept in a Docker volume
+        (<code class="inl">pgdata</code>) so it survives restarts.</p>
+
+        <h3>MySQL &nbsp;<span class="pill cloud">bundled</span></h3>
+        <p><code class="inl">dotnet run --project tools/Gdb.DockerUp mysql</code> — starts a <code class="inl">mysql:8</code> container (with
+        native-password auth so the driver connects cleanly). Kept in the <code class="inl">mysqldata</code> volume.</p>
+
+        <h3>Supabase &nbsp;<span class="pill cloud">cloud</span></h3>
+        <p><strong>Easiest — one command</strong> (writes <code class="inl">.env</code> for you from a single URI):</p>
+        <ol class="steps">
+          <li>In Supabase: <em>Project → Connect → Session pooler</em> (port 5432) → copy the URI.</li>
+          <li><strong>Run:</strong> <code class="inl">python setup_supabase_docker.py "postgresql://postgres.abcd:YOURPASSWORD@aws-1-...pooler.supabase.com:5432/postgres"</code></li>
+          <li><strong>Start:</strong> <code class="inl">dotnet run --project tools/Gdb.DockerUp supabase</code></li>
+        </ol>
+        <p style="margin-top:10px"><strong>Manual alternative</strong> (edit the file by hand):</p>
+        <ol class="steps">
+          <li><strong>Copy the template:</strong> <code class="inl">copy supabase.env.example .env</code></li>
+          <li><strong>Fill in <code class="inl">.env</code></strong> with your Supabase <em>Session pooler</em> connection.
+            <em>Fill EVERY field</em> — the full <code class="inl">SUPABASE_DATABASE_URL</code> <strong>and</strong> the
+            <code class="inl">SUPABASE_DB_*</code> parts (user/host/password); the transactions service uses the split
+            <code class="inl">DB_*</code> fields, so leaving them as placeholders makes only that service fail.</li>
+          <li><strong>Run:</strong> <code class="inl">dotnet run --project tools/Gdb.DockerUp supabase</code></li>
+        </ol>
+        <div class="note warn"><span class="lab">Supabase notes</span>
+          <p>All services share Supabase’s single <code class="inl">postgres</code> database. Use the
+          <strong>Session pooler (port 5432)</strong>. The first login may be slow while the cloud project wakes.
+          The <code class="inl">setup_supabase_docker.py</code> helper avoids the most common mistake by writing the
+          URL and all <code class="inl">DB_*</code> fields together, in sync.</p></div>
+      </section>
+
+      <!-- 06 MANAGE -->
+      <section id="manage">
+        <div class="sec-head"><span class="sec-num">06</span>
+          <div><h2>Stop, switch, and clean up</h2></div>
+        </div>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">everyday commands</span></div>
+          <pre><span class="cmt"># stop the stack (Ctrl+C in the window also stops it)</span>
+<span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.DockerUp down</b>
+<span class="cmt"># stop AND delete the database volume (fresh start next time)</span>
+<span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.DockerUp down -v</b>
+<span class="cmt"># switch database: just stop, then start with a different word</span>
+<span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.DockerUp down</b>
+<span class="pmt">PS&gt;</span> <b>dotnet run --project tools/Gdb.DockerUp mysql</b></pre>
+        </div>
+        <div class="note"><span class="lab">Switching is clean</span>
+          <p>Because each provider is its own container/volume, switching never corrupts anything. As with local, data
+          does <em>not</em> carry across providers — each starts fresh with the two seed accounts.</p></div>
+      </section>
+
+      <!-- 07 INSPECT -->
+      <section id="inspect">
+        <div class="sec-head"><span class="sec-num">07</span>
+          <div><h2>Looking inside the running stack</h2></div>
+        </div>
+        <div class="term">
+          <div class="term-bar"><span class="dot r"></span><span class="dot y"></span><span class="dot g"></span><span class="tt">useful Docker commands</span></div>
+          <pre><span class="pmt">PS&gt;</span> <b>docker compose ps</b>            <span class="cmt"># list running containers + health</span>
+<span class="pmt">PS&gt;</span> <b>docker compose logs -f accounts-service</b>   <span class="cmt"># follow one service's logs</span>
+<span class="pmt">PS&gt;</span> <b>docker compose logs -f</b>         <span class="cmt"># follow ALL logs together</span></pre>
+        </div>
+        <p>The bundled databases publish their ports, so you can inspect them with the same GUI tools as the local
+        edition:</p>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Provider</th><th>Open in</th><th>Connect to</th><th class="mono">User / pass</th></tr></thead>
+            <tbody>
+              <tr><td>PostgreSQL</td><td>pgAdmin (host)</td><td class="mono">localhost:5432</td><td class="mono">postgres / postgres</td></tr>
+              <tr><td>MySQL</td><td>MySQL Workbench (host)</td><td class="mono">localhost:3306</td><td class="mono">root / mysql</td></tr>
+              <tr><td>Supabase</td><td>Supabase → Table Editor</td><td>your cloud project</td><td class="mono">(your login)</td></tr>
+              <tr><td>SQLite / In-Memory</td><td>—</td><td>inside the container</td><td class="mono">n/a</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 08 TROUBLE -->
+      <section id="trouble">
+        <div class="sec-head"><span class="sec-num">08</span>
+          <div><h2>Troubleshooting</h2></div>
+        </div>
+        <div class="tbl-scroll">
+          <table>
+            <thead><tr><th>Message</th><th>Meaning</th><th>Fix</th></tr></thead>
+            <tbody>
+              <tr><td class="mono">cannot find … dockerDesktopLinuxEngine</td><td>Engine not running</td><td>Open Docker Desktop, wait for the green whale, retry</td></tr>
+              <tr><td class="mono">port is already allocated (5432 / 3306)</td><td>A local PostgreSQL/MySQL holds the port</td><td>Docker publishes its DBs on <strong>5433 / 13306</strong> to avoid this — or stop the local DB service</td></tr>
+              <tr><td class="mono">port is already allocated</td><td>Something else holds 8001–8008 / 3000</td><td>Stop the local run (<code class="inl">taskkill /F /IM python.exe</code>) or another stack</td></tr>
+              <tr><td class="mono">supabase: transactions exits, "tenant/user … not found"</td><td>Only <code class="inl">SUPABASE_DATABASE_URL</code> was filled; the <code class="inl">DB_*</code> fields are still placeholders</td><td>Use <code class="inl">python setup_supabase_docker.py "&lt;uri&gt;"</code> (fills every field), then re-run</td></tr>
+              <tr><td class="mono">first build is very slow</td><td>Downloading images + installing deps</td><td>Normal once; later runs are cached and fast</td></tr>
+              <tr><td class="mono">web loads but API calls fail</td><td>A backend container crashed</td><td><code class="inl">docker compose logs -f &lt;service&gt;</code> → read the error</td></tr>
+              <tr><td class="mono">supabase: empty / missing values</td><td>No <code class="inl">.env</code> filled in</td><td>Copy <code class="inl">supabase.env.example → .env</code>, fill it, retry</td></tr>
+              <tr><td class="mono">not enough memory / slow</td><td>Laptop is low on RAM</td><td>Use the Local edition, or try the inmemory/sqlite providers</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 09 CHEAT -->
+      <section id="cheat">
+        <div class="sec-head"><span class="sec-num">09</span>
+          <div><h2>Quick reference card</h2></div>
+        </div>
+        <div class="card">
+          <h4 style="margin-top:0">Start with a database (pick one)</h4>
+          <div class="tbl-scroll"><table>
+            <tbody>
+              <tr><td>In-Memory</td><td class="mono">dotnet run --project tools/Gdb.DockerUp inmemory</td></tr>
+              <tr><td>SQLite</td><td class="mono">dotnet run --project tools/Gdb.DockerUp sqlite</td></tr>
+              <tr><td>PostgreSQL</td><td class="mono">dotnet run --project tools/Gdb.DockerUp postgres</td></tr>
+              <tr><td>MySQL</td><td class="mono">dotnet run --project tools/Gdb.DockerUp mysql</td></tr>
+              <tr><td>Supabase</td><td class="mono">dotnet run --project tools/Gdb.DockerUp supabase</td></tr>
+            </tbody>
+          </table></div>
+        </div>
+        <div class="card">
+          <h4 style="margin-top:0">Manage</h4>
+          <div class="tbl-scroll"><table>
+            <tbody>
+              <tr><td>Stop</td><td class="mono">dotnet run --project tools/Gdb.DockerUp down</td></tr>
+              <tr><td>Stop + wipe DB</td><td class="mono">dotnet run --project tools/Gdb.DockerUp down -v</td></tr>
+              <tr><td>Run in background</td><td class="mono">dotnet run --project tools/Gdb.DockerUp postgres -d</td></tr>
+              <tr><td>See containers</td><td class="mono">docker compose ps</td></tr>
+              <tr><td>See logs</td><td class="mono">docker compose logs -f &lt;service&gt;</td></tr>
+            </tbody>
+          </table></div>
+          <p style="margin-bottom:0"><strong>Web:</strong> http://localhost:3000 &nbsp;·&nbsp;
+          <strong>Login:</strong> <code class="inl">admin</code> / <code class="inl">Welcome@1</code> &nbsp;·&nbsp;
+          <strong>Demo Aadhar:</strong> <code class="inl">123456789012</code> &nbsp;·&nbsp;
+          <strong>PIN:</strong> <code class="inl">1234</code></p>
+        </div>
+      </section>
+    </main>
+  </div>
+</div>
+
+<footer>
+  <div class="wrap">
+    <span>Global Digital Bank &mdash; Docker Edition</span>
+    <span>One command · nine containers · five databases</span>
+  </div>
+</footer>
+
+
