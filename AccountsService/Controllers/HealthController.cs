@@ -12,3 +12,4 @@ public class HealthController : ControllerBase
     [HttpGet("health")]
     public ActionResult HealthCheck() => Ok(new { status = "healthy", service = "gdb-accounts-service" });
 }
+//merge demo
