@@ -150,4 +150,4 @@ jobs:
           docker tag "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}" "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${ref}"
           docker push "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}"
           docker push "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${ref}"
-```
+
