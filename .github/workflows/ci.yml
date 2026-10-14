@@ -73,8 +73,6 @@ jobs:
         run: dotnet run --project tools/Gdb.OpenApiGate --configuration Release
 
   # ---- Executable-bit lint: shebang scripts must be executable in git ----
-  # Catches the Windows pitfall where a script is committed with mode 100644, so it
-  # fails with "Permission denied" on every fresh clone (Linux/macOS/VS Code web).
   exec-bits:
     name: shell scripts executable
     runs-on: ubuntu-latest
@@ -84,9 +82,6 @@ jobs:
         run: |
           set -uo pipefail
           bad=0
-          # Every TRACKED file whose first two bytes are "#!" (a shebang) must have git
-          # mode 100755. We read the mode from the index, not the disk, because the repo
-          # mode is the thing that travels to every clone.
           while IFS= read -r -d '' f; do
             [ "$(git show ":$f" 2>/dev/null | head -c2)" = '#!' ] || continue
             mode=$(git ls-files -s -- "$f" | awk '{print $1}')
@@ -129,7 +124,7 @@ jobs:
       - name: Build image
         run: docker build -f ${{ matrix.service }}/Dockerfile -t ${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }} .
       - name: Scan image (Trivy - fails on HIGH/CRITICAL with a fix available)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}
           format: table
@@ -150,4 +145,3 @@ jobs:
           docker tag "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}" "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${ref}"
           docker push "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}"
           docker push "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${ref}"
-
