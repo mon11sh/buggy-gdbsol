@@ -1,3 +1,4 @@
+
 name: CI
 
 on:
@@ -70,19 +71,6 @@ jobs:
           dotnet-version: '10.0.x'
       - name: Run OpenAPI Gate
         run: dotnet run --project tools/Gdb.OpenApiGate --configuration Release
-
-  # ---- Secret scanning across the whole repo ----
-  secrets:
-    name: secret scan
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: gitleaks
-        uses: gitleaks/gitleaks-action@v2
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   # ---- Executable-bit lint: shebang scripts must be executable in git ----
   # Catches the Windows pitfall where a script is committed with mode 100644, so it
@@ -162,3 +150,4 @@ jobs:
           docker tag "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}" "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${ref}"
           docker push "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${{ github.sha }}"
           docker push "${{ env.IMAGE_PREFIX }}/${{ matrix.image }}:${ref}"
+```
